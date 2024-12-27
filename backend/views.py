@@ -4,13 +4,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import PatientSignupSerializer
 from .models import Patient
-
 class PatientSignupView(APIView):
     def post(self, request):
         # Extract email and NSS from the request data
         email = request.data.get('email')
         nss = request.data.get('nss')  # Assuming nss is passed in the request data
-
+        name = request.data.get('name')
+        surname = request.data.get('surname')
+        password = request.data.get('password')
+        
         # Email validation
         email_validation = self.validate_email(email)
 
@@ -22,7 +24,7 @@ class PatientSignupView(APIView):
             return Response({'message': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if a patient with the same NSS exists
-        existing_patient = Patient.objects.filter(NSS=nss).first()
+        existing_patient = Patient.objects.filter(nss=nss).first()
 
         if existing_patient:
             # If the patient exists and has a non-null email and password, reject the signup (duplicate account)
@@ -35,6 +37,9 @@ class PatientSignupView(APIView):
                 existing_patient.password = request.data.get('password')  # Assuming the password is passed in the request
                 existing_patient.save()
                 return Response({'message': 'Patient account updated successfully with email and password.'}, status=status.HTTP_200_OK)
+
+        # If no patient exists with this NSS, return the message 'Your EHR is not created yet'
+        return Response({'message': 'Your EHR is not created yet.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Proceed with the patient signup if the email is valid and no duplicates were found
         serializer = PatientSignupSerializer(data=request.data)

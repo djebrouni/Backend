@@ -74,21 +74,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dpi',  # Replace with your database name
-        'USER': 'wafa',      # Replace with your MySQL username
-        'PASSWORD': 'w@fa12345',  # Replace with your MySQL password
-        'HOST': 'tpigl.mysql.database.azure.com',          # Or your database host
+        'NAME': 'mydb',  # Replace with your database name
+        'USER': 'root',      # Replace with your MySQL username
+        'PASSWORD': 'root',  # Replace with your MySQL password
+        'HOST': 'localhost',          # Or your database host
         'PORT': '3306',               # Default MySQL port
-'OPTIONS': {
-            'ssl': {
-                'ca': 'C:\\Users\\mw_dj\\Downloads\\DigiCertGlobalRootG2.crt (1).pem',  # Path to the root certificate
- # Path to the root certificate
-            },
-        
-    }
+
     }
 }
 
