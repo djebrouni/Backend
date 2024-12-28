@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.hashers import check_password
 
-from .models import administratifStaff, Doctor, LabTechnician, Nurse, Patient, Radiologist
+from api.models import administratifStaff, Doctor, LabTechnician, Nurse, Patient, Radiologist
 
 class PatientSignupView(APIView):
     def post(self, request):

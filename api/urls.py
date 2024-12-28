@@ -1,10 +1,8 @@
-from django.urls import path
-from .views import PatientSignupView
-from .views import SignInView
+from django.urls import path, include
 
+# include urls of apps
 urlpatterns = [
-    path('signin/', SignInView.as_view(), name='signin'),
-]
-urlpatterns = [
-    path('signup/', PatientSignupView.as_view(), name='signup'),  # Define the signup endpoint
+    path('auth/', include('api.apps.auth.urls')),    
+    path('auth/', include('api.apps.medecins.urls')),    
+    path('auth/', include('api.apps.patients.urls')),    
 ]
