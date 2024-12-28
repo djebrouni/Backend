@@ -78,12 +78,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',  # Replace with your database name
-        'USER': 'root',      # Replace with your MySQL username
-        'PASSWORD': 'root',  # Replace with your MySQL password
-        'HOST': 'localhost',          # Or your database host
-        'PORT': '3306',               # Default MySQL port
-
+        'NAME': 'dpi',
+        'USER': 'wafa',
+        'PASSWORD': 'w@fa12345',
+        'HOST': 'tpigl.mysql.database.azure.com',  # e.g., myserver.mysql.database.azure.com
+        'PORT': '3306',  # Default MySQL port
+        'OPTIONS': {
+            'ssl': {'ca': 'C:/Users/mw_dj/Downloads/DigiCertGlobalRootG2.crt.pem'
+},  # Ensure secure connection
+        },
     }
 }
 

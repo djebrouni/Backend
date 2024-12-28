@@ -78,7 +78,16 @@ class PatientSignupView(APIView):
         except Exception as e:
             print(f"Error validating email: {e}")
             return 'invalid'
-
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password
+import json
+import datetime
+import jwt
+from api.helper.getModels import getModel  # Import the getModel function
+from django.conf import settings
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SignInView(View):
@@ -103,15 +112,22 @@ class SignInView(View):
 
         # Recherche dans chaque modèle
         for model, model_role in models:
-            user = model.objects.filter(email=email).first()
-            if user and check_password(password, user.password):
-                role = model_role
-                break
+            try:
+                user = model.objects.get(email=email)  # Use get() for single result
+                if check_password(password, user.password):
+                    role = model_role
+                    break
+            except model.DoesNotExist:
+                continue  # User not found in this model, move to the next one
 
         # Si l'utilisateur n'existe pas
         if not user:
             return JsonResponse({'message': 'Email ou mot de passe invalide.'}, status=400)
 
+        # Utilisez la fonction helper pour obtenir le modèle correspondant à partir du rôle
+        
+
+    
         # Générer un token JWT
         payload = {
             'user_id': user.id,
@@ -125,4 +141,6 @@ class SignInView(View):
             'message': 'Authentification réussie !',
             'token': token,
             'role': role
+
+           
         }, status=200)

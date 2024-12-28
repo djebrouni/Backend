@@ -20,7 +20,7 @@ class BloodType(Enum):
 
 #EHR model 
 class EHR(models.Model):
-    idEHR = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     
     administratifStaff = models.ForeignKey(
         'administratifStaff',  # Link to administratifStaff
@@ -33,7 +33,7 @@ class EHR(models.Model):
 
 #doctor model 
 class Doctor(models.Model):
-    idDoctor = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
@@ -52,12 +52,12 @@ class Doctor(models.Model):
 
 #Hospital model 
 class Hospital(models.Model):
-    idHospital = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name=models.CharField(max_length=45)
 
 # Patient model
 class Patient(models.Model):
-    idPatient = models.AutoField(primary_key=True)  # Auto-incrementing primary key
+    id = models.AutoField(primary_key=True)  # Auto-incrementing primary key
     NSS = models.PositiveIntegerField(unique=True)  # National Social Security number, for example
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
@@ -74,6 +74,8 @@ class Patient(models.Model):
     gender = models.CharField(max_length=15)
     email = models.EmailField(blank=True, null=True)
     profession = models.CharField(max_length=100, blank=True, null=True)
+    password = models.CharField(max_length=255, null=True, blank=True)  # nullable and blankable password field
+
 
     # Linking to the EHR model with a one-to-one relationship
     ehr = models.OneToOneField(
@@ -95,23 +97,23 @@ class Patient(models.Model):
 
 # admin Model 
 class administratifStaff(models.Model):
-    idAdministratifStaff = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name=models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
-    Email = models.CharField(max_length=70)
-    passwrord=models.CharField(max_length=200)
+    email = models.CharField(max_length=70)
+    password=models.CharField(max_length=200)
     #link this model with the EHR model one to many relationship
     
 
 
 class approvedMedications(models.Model):
-    idApprovedMedications = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     number=models.IntegerField()
 
 #LabTechnician model 
 class LabTechnician(models.Model):
-    idlabTechnician = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name=models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
@@ -122,7 +124,7 @@ class LabTechnician(models.Model):
 
 #Biology report model 
 class BiologyReport(models.Model):
-    idBiologyReport = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     bloodSugarLevel = models.FloatField()
     bloodPressure = models.FloatField()
     chelesterolLevel = models.FloatField()
@@ -144,7 +146,7 @@ class BiologyReport(models.Model):
     )
 #Diagnostic Model
 class Diagnostic(models.Model):
-    idDiagnostic = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     prescription = models.OneToOneField(
         'Prescription',  # Reference to the Prescription model
         on_delete=models.CASCADE,  # If the Diagnostic is deleted, the related Prescription is also deleted
@@ -154,7 +156,7 @@ class Diagnostic(models.Model):
 
 #consultation model 
 class Consultation(models.Model):
-    idConsultation = models.AutoField(primary_key=True)
+    id= models.AutoField(primary_key=True)
     date = models.DateField()
     summary = models.TextField()
     chiefComplaint= models.TextField()
@@ -171,12 +173,12 @@ class Consultation(models.Model):
 
 #Medecine model
 class Medecine(models.Model):
-    idMedecine = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
 
 #MedicalCertificate model 
 class MedicalCertificate(models.Model):
-    idMedicalCertificate = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     requesed = models.BooleanField(default=False)
     doctor = models.ForeignKey(
         Doctor,
@@ -197,7 +199,7 @@ class MedicalCertificate(models.Model):
 
 #Prescription model
 class Prescription(models.Model):
-    idPrescription = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     isValid = models.BooleanField(default=False)
     date = models.DateField( auto_now_add=True) # Automatically set the field to now when the object is first created. 
     doctor = models.ForeignKey(
@@ -237,7 +239,7 @@ class MedicalTreatment(models.Model):
 
 #Nurse model 
 class Nurse(models.Model):
-    idNurse = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
@@ -252,13 +254,13 @@ class Nurse(models.Model):
 
 #Observation model
 class Observation(models.Model):
-    idObservation = models.AutoField(primary_key=True)
+    id= models.AutoField(primary_key=True)
     description = models.TextField()
 
 
 #Radiologist model
 class Radiologist(models.Model):
-    idRadiologist = models.AutoField(primary_key=True)
+    id= models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
@@ -268,7 +270,7 @@ class Radiologist(models.Model):
 
 #RadiologyReport model
 class RadiologyReport(models.Model):
-    idRadiologyReport = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     Type = models.CharField(max_length=45)
     imageData = models.BinaryField()
     date = models.DateField()
