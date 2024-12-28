@@ -1,2 +1,3 @@
 Pipfile
 db.sqlite3
+.env
