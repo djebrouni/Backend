@@ -100,7 +100,7 @@ class administratifStaff(models.Model):
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
     Email = models.CharField(max_length=70)
-    passwrord=models.CharField(max_length=200)
+    password=models.CharField(max_length=200)
     #link this model with the EHR model one to many relationship
     
 
