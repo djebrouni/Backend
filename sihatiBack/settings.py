@@ -78,8 +78,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'tpigl',
-        'USER': 'diaaeddine',
-        'PASSWORD': '',
+        'USER': 'manil',
+        'PASSWORD': 'm@nil12345',
         'HOST': 'tpigl.mysql.database.azure.com',  # e.g., myserver.mysql.database.azure.com
         'PORT': '3306',  # Default MySQL port
         'OPTIONS': {
