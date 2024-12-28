@@ -1,6 +1,6 @@
 from enum import Enum
 from django.db import models
-
+from django.core.validators import MinValueValidator
 
 #enum class of tools  Sthetoscope or Thermometer or TensionMeter
 class Tool(Enum):
@@ -17,6 +17,18 @@ class BloodType(Enum):
         AB_NEGATIVE = 'AB-'
         O_POSITIVE = 'O+'
         O_NEGATIVE = 'O-'
+
+#EHR model 
+class EHR(models.Model):
+    idEHR = models.AutoField(primary_key=True)
+    
+    administratifStaff = models.ForeignKey(
+        'administratifStaff',  # Link to administratifStaff
+        on_delete=models.CASCADE,  
+        related_name='ehr_staff', 
+        null=True,
+        blank=True
+    )
 
 
 #doctor model 
@@ -36,17 +48,6 @@ class Doctor(models.Model):
     )
 
 
-#EHR model 
-class EHR(models.Model):
-    idEHR = models.AutoField(primary_key=True)
-    
-    administratifStaff = models.ForeignKey(
-        'administratifStaff',  # Link to administratifStaff
-        on_delete=models.CASCADE,  
-        related_name='ehr_staff', 
-        null=True,
-        blank=True
-    )
 
 
 #Hospital model 
@@ -66,7 +67,7 @@ class Patient(models.Model):
     mutual = models.CharField(max_length=45)
     contactPerson = models.CharField(max_length=45)
     bloodType = models.CharField(
-        max_length=3,
+        max_length=11,
         choices=[(tag.name, tag.value) for tag in BloodType],
         default=BloodType.O_POSITIVE.name  # Default blood type
     )
@@ -217,7 +218,7 @@ class Prescription(models.Model):
 
 #MedicalTreatment model
 class MedicalTreatment(models.Model):
-    dose = models.FloatField(min_value=0)
+    dose = models.FloatField(validators=[MinValueValidator(0)])    
     Duration = models.IntegerField(default=0)
     medicine = models.ForeignKey(
         Medecine,
@@ -269,7 +270,7 @@ class Radiologist(models.Model):
 class RadiologyReport(models.Model):
     idRadiologyReport = models.AutoField(primary_key=True)
     Type = models.CharField(max_length=45)
-    imageData = models.LongBlobField()
+    imageData = models.BinaryField()
     date = models.DateField()
     description = models.TextField()
     
