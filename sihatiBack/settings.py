@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'sihatiBack.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tpigl',
+        'NAME': 'dpi',
         'USER': 'diaaeddine',
-        'PASSWORD': '',
+        'PASSWORD': '@dmin1212',
         'HOST': 'tpigl.mysql.database.azure.com',  # e.g., myserver.mysql.database.azure.com
         'PORT': '3306',  # Default MySQL port
         'OPTIONS': {
