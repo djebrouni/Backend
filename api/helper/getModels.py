@@ -1,5 +1,5 @@
-from models import Patient, Doctor, Nurse, LabTechnician, Radiologist, administratifStaff
-from const.ROLES import ROLES
+from ..models import Patient, Doctor, Nurse, LabTechnician, Radiologist, administratifStaff
+from ..const.ROLES import ROLES
 
 def getModel(role):
     if role == ROLES.Patient.value:

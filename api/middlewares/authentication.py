@@ -2,12 +2,13 @@ import jwt
 from django.http import JsonResponse
 from django.conf import settings
 from functools import wraps
-from helper.getModels import getModel
+from ..helper.getModels import getModel
 
 def verify_user(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         # Get the Authorization header
+        print("header")
         auth_header = request.headers.get('Authorization')
         if not auth_header:
             return JsonResponse({'error': 'Access Denied'}, status=401)
