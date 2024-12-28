@@ -83,7 +83,8 @@ DATABASES = {
         'HOST': 'tpigl.mysql.database.azure.com',  # e.g., myserver.mysql.database.azure.com
         'PORT': '3306',  # Default MySQL port
         'OPTIONS': {
-            'ssl': {'ca': './DigiCertGlobalRootG2.crt.pem'},  # Ensure secure connection
+            'ssl': {'ca': 'C:/Users/mw_dj/Downloads/DigiCertGlobalRootG2.crt.pem'
+},  # Ensure secure connection
         },
     }
 }
