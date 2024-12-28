@@ -6,7 +6,7 @@ from ..helper.getModels import getModel
 
 def verify_user(view_func):
     @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
+    def wrapper(self, request, *args, **kwargs):
         # Get the Authorization header
         print("header")
         auth_header = request.headers.get('Authorization')

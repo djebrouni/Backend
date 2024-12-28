@@ -7,10 +7,9 @@ from api.const.ROLES import ROLES
 
 class UserProfileView(View):
 
-    @verify_user  # Ensure the request is authenticated
+    # @verify_user  # Ensure the request is authenticated
     def get(self, request, *args, **kwargs):
         role = request.role
-        model = request.Model
         user = request.user
         profile_data = {}
 
@@ -33,54 +32,8 @@ class UserProfileView(View):
                 "email": user.email,
                 "phoneNumber": user.phoneNumber,
                 "specialization": user.specialization,
-                "occupation": ROLES.Medecin.value,
-
+                "occupation": role,
             }
-
-        elif role == ROLES.Infirmier.value:
-            profile_data = {
-               "name": user.name,
-                "surname": user.surname,
-                "email": user.email,
-                "phoneNumber": user.phoneNumber,
-                "specialization": user.specialization,
-                "occupation": ROLES.Infirmier.value,
-
-            }
-
-        elif role == ROLES.Radiologue.value:
-            profile_data = {
-                "name": user.name,
-                "surname": user.surname,
-                "email": user.email,
-                "phoneNumber": user.phoneNumber,
-                "specialization": user.specialization,
-                "occupation": ROLES.Radiologue.value,
-
-            }
-
-        elif role == ROLES.Laboratin.value:
-            profile_data = {
-               "name": user.name,
-                "surname": user.surname,
-                "email": user.email,
-                "phoneNumber": user.phoneNumber,
-                "specialization": user.specialization,
-                "occupation": ROLES.Laboratin.value,
-
-            }
-
-        elif role == ROLES.Personnel.value:
-            profile_data = {
-                "name": user.name,
-                "surname": user.surname,
-                "email": user.email,
-                "phoneNumber": user.phoneNumber,
-                "specialization": user.specialization,
-                "occupation": ROLES.Personnel.value,
-
-            }
-
         else:
             return JsonResponse({'error': 'Role not recognized'}, status=400)
 

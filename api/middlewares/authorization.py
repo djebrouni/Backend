@@ -5,7 +5,7 @@ def verify_role(*allowed_roles):
     
     def decorator(view_func):
         @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(self, request, *args, **kwargs):
             # Get role from request
             user_role = request.role
             
