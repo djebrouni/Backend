@@ -77,13 +77,14 @@ WSGI_APPLICATION = 'sihatiBack.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tpigl',
-        'USER': 'diaaeddine',
-        'PASSWORD': '',
+        'NAME': 'dpi',
+        'USER': 'wafa',
+        'PASSWORD': 'w@fa12345',
         'HOST': 'tpigl.mysql.database.azure.com',  # e.g., myserver.mysql.database.azure.com
         'PORT': '3306',  # Default MySQL port
         'OPTIONS': {
-            'ssl': {'ca': './DigiCertGlobalRootG2.crt.pem'},  # Ensure secure connection
+            'ssl': {'ca': 'C:/Users/mw_dj/Downloads/DigiCertGlobalRootG2.crt.pem'
+},  # Ensure secure connection
         },
     }
 }
