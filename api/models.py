@@ -40,6 +40,7 @@ class Doctor(models.Model):
     specialization = models.CharField(max_length=45) 
     email = models.CharField(max_length=70)
     password = models.CharField(max_length=200)
+    role = models.CharField(max_length=50, default='doctor') 
 
     ehr = models.ManyToManyField(
         EHR,  # Reference to the EHR model
@@ -75,7 +76,7 @@ class Patient(models.Model):
     email = models.EmailField(blank=True, null=True)
     profession = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=255, null=True, blank=True)  # nullable and blankable password field
-
+    role = models.CharField(max_length=50, default='patient') 
 
     # Linking to the EHR model with a one-to-one relationship
     ehr = models.OneToOneField(
@@ -103,6 +104,7 @@ class administratifStaff(models.Model):
     phoneNumber = models.CharField(max_length=10)
     email = models.CharField(max_length=70)
     password=models.CharField(max_length=200)
+    role = models.CharField(max_length=50, default='administratifStaff') 
     #link this model with the EHR model one to many relationship
     
 
@@ -120,6 +122,8 @@ class LabTechnician(models.Model):
     specialization = models.CharField(max_length=45)
     email = models.CharField(max_length=70)
     password = models.CharField(max_length=200)
+    role = models.CharField(max_length=50, default='LabTechnician') 
+
 
 
 #Biology report model 
@@ -245,7 +249,8 @@ class Nurse(models.Model):
     phoneNumber = models.CharField(max_length=10)
     email = models.CharField(max_length=70)
     password = models.CharField(max_length=200)
-    
+    role = models.CharField(max_length=50, default='Nurse') 
+
     ehr = models.ManyToManyField(
         EHR,
         related_name='nurses',  # Allows accessing the nurses related to an EHR
@@ -267,6 +272,8 @@ class Radiologist(models.Model):
     specialization = models.CharField(max_length=45)
     email = models.CharField(max_length=70)
     password = models.CharField(max_length=200)
+    role = models.CharField(max_length=50, default='Radiologist') 
+
 
 #RadiologyReport model
 class RadiologyReport(models.Model):

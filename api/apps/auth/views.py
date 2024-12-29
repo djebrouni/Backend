@@ -97,25 +97,24 @@ class SignInView(View):
         email = data.get('email')
         password = data.get('password')
 
-        # Liste des modèles et rôles
+        # Liste des modèles
         models = [
-            (administratifStaff, 'admin'),
-            (Doctor, 'doctor'),
-            (LabTechnician, 'lab_technician'),
-            (Nurse, 'nurse'),
-            (Patient, 'patient'),
-            (Radiologist, 'radiologist')
+            administratifStaff,
+            Doctor,
+            LabTechnician,
+            Nurse,
+            Patient,
+            Radiologist
         ]
 
         user = None
-        role = None
 
         # Recherche dans chaque modèle
-        for model, model_role in models:
+        for model in models:
             try:
                 user = model.objects.get(email=email)  # Use get() for single result
                 if check_password(password, user.password):
-                    role = model_role
+                    # If user is found and password matches, break out of the loop
                     break
             except model.DoesNotExist:
                 continue  # User not found in this model, move to the next one
@@ -124,14 +123,13 @@ class SignInView(View):
         if not user:
             return JsonResponse({'message': 'Email ou mot de passe invalide.'}, status=400)
 
-        # Utilisez la fonction helper pour obtenir le modèle correspondant à partir du rôle
+        # Assuming the role is a field in each model
+        role = getattr(user, 'role', None)  # Use the 'role' attribute from the user object
         
-
-    
         # Générer un token JWT
         payload = {
             'user_id': user.id,
-            'role': role,
+            'role': role,  # Use the dynamically retrieved role
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         }
 
@@ -141,6 +139,4 @@ class SignInView(View):
             'message': 'Authentification réussie !',
             'token': token,
             'role': role
-
-           
         }, status=200)
