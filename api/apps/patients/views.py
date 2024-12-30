@@ -152,10 +152,11 @@ from api.models import (
     Observation, MedicationAdministered
 )
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 import jwt
 from django.conf import settings
 import json
-
+import base64
 
 def consultation_dpi(request):
     # Ensure the method is GET
@@ -204,7 +205,29 @@ def consultation_dpi(request):
     biological_reports = BiologyReport.objects.filter(ehr=ehr).values()
 
     # Get radiological reports related to the EHR
-    radiology_reports = RadiologyReport.objects.filter(ehr=ehr).values()
+    radiology_reports = RadiologyReport.objects.filter(ehr=ehr)
+
+    # Convert radiology report imageData to base64 (if it exists)
+    radiology_reports_data = []
+    for report in radiology_reports:
+        if report.imageData:
+            # Convert binary data to base64
+            image_base64 = base64.b64encode(report.imageData).decode('utf-8')
+            radiology_reports_data.append({
+                'id': report.id,
+                'type': report.Type,
+                'imageData': image_base64,  # Include base64 string instead of raw binary
+                'date': report.date,
+                'description': report.description,
+            })
+        else:
+            radiology_reports_data.append({
+                'id': report.id,
+                'type': report.Type,
+                'imageData': None,
+                'date': report.date,
+                'description': report.description,
+            })
 
     # Get prescriptions related to the EHR
     prescriptions = Prescription.objects.filter(ehr=ehr).values()
@@ -249,7 +272,7 @@ def consultation_dpi(request):
             'gender': patient.gender,
         },
         'biological_reports': list(biological_reports),
-        'radiological_reports': list(radiology_reports),
+        'radiological_reports': radiology_reports_data,  # Updated data with base64 images
         'prescriptions': list(prescriptions),
         'diagnostics': list(diagnostics),
         'consultations': list(consultations),
