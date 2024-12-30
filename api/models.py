@@ -119,11 +119,6 @@ class administratifStaff(models.Model):
     #link this model with the EHR model one to many relationship
     
 
-
-class approvedMedications(models.Model):
-    id = models.AutoField(primary_key=True)
-    number=models.IntegerField()
-
 #LabTechnician model 
 class LabTechnician(models.Model):
     id = models.AutoField(primary_key=True)
@@ -268,11 +263,6 @@ class Nurse(models.Model):
         blank=True  
     )
 
-#Observation model
-class Observation(models.Model):
-    id= models.AutoField(primary_key=True)
-    description = models.TextField()
-
 
 #Radiologist model
 class Radiologist(models.Model):
@@ -308,5 +298,83 @@ class RadiologyReport(models.Model):
         related_name='radiology_reports',  # Allows accessing all RadiologyReports for a Radiologist
         null=False,  # Allows RadiologyReport to exist without a Radiologist initially
         blank=True  # Optional: if not all RadiologyReports have a Radiologist linked initially
+    )
+   # Link to the EHR model
+    ehr = models.ForeignKey(
+        EHR,
+        on_delete=models.CASCADE,  # If the EHR is deleted, delete the related RadiologyReport
+        related_name='radiology_reports',  # Allows accessing all RadiologyReports for a specific EHR
+        null=True,  # Optional: if not all RadiologyReports have an EHR linked
+        blank=True  # Optional: if not all RadiologyReports have an EHR linked initially
+    )
+
+# Biology Report model 
+class BiologyReport(models.Model):
+    id = models.AutoField(primary_key=True)
+    bloodSugarLevel = models.FloatField()
+    bloodPressure = models.FloatField()
+    cholesterolLevel = models.FloatField()
+    completeBloodCount = models.FloatField()
+    doctor = models.ForeignKey(
+        Doctor,
+        on_delete=models.CASCADE,
+        related_name='biology_reports'
+    )
+    lab_technician = models.ForeignKey(
+        LabTechnician,
+        on_delete=models.CASCADE,
+        related_name='biology_reports'
+    )
+     # Link to the EHR model
+    ehr = models.ForeignKey(
+        EHR,
+        on_delete=models.CASCADE,  # If the EHR is deleted, delete the related BiologyReport
+        related_name='biology_reports',  # Allows accessing all BiologyReports for a specific EHR
+        null=True,  # Optional: if not all BiologyReports have an EHR linked
+        blank=True  # Optional: if not all BiologyReports have an EHR linked initially
+    )
+
+# CareProvided model
+class CareProvided(models.Model):
+    id = models.AutoField(primary_key=True)
+    date = models.DateField()
+    time = models.TimeField()
+    care_actions = models.TextField()
+    nurse = models.ForeignKey(
+        'Nurse',
+        on_delete=models.CASCADE,
+        related_name='care_provided'
+    )
+       # Relating CareProvided to EHR
+    ehr = models.ForeignKey(
+        'EHR',  # Link to EHR
+        on_delete=models.CASCADE,
+        related_name='care_provided',  # You can access all care events for a specific EHR via this related_name
+    )
+
+# Observation model
+class Observation(models.Model):
+    id = models.AutoField(primary_key=True)
+    description = models.TextField()
+    care_provided = models.ForeignKey(
+        CareProvided,
+        on_delete=models.CASCADE,
+        related_name='observations' ,
+        blank= True ,
+        null = True ,
+
+    )
+
+# MedicationAdministered model
+class MedicationAdministered(models.Model):
+    id = models.AutoField(primary_key=True)
+    care_provided = models.ForeignKey(
+        CareProvided,
+        on_delete=models.CASCADE,
+        related_name='medications_administered'
+    )
+    medicine = models.OneToOneField(
+        'Medecine',
+        on_delete=models.CASCADE
     )
 

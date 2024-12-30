@@ -55,12 +55,11 @@ def create_patient_dpi(request):
     gender = data.get('gender')
     dateOfBirth = data.get('dateOfBirth')
 
-    # For administrative staff, check for referring doctor name and surname
+    # For administrative staff, check for referring doctor id
     if role == 'administratifstaff':
-        referring_doctor_name = data.get('referring_doctor_name')
-        referring_doctor_surname = data.get('referring_doctor_surname')
-        if not referring_doctor_name or not referring_doctor_surname:
-            return JsonResponse({"error": "Referring doctor name and surname are required for administratif staff."}, status=400)
+        referring_doctor_id = data.get('referring_doctor_id')
+        if not referring_doctor_id:
+            return JsonResponse({"error": "Referring doctor ID is required for administratif staff."}, status=400)
 
     # Validate required fields
     required_fields = [
@@ -117,11 +116,8 @@ def create_patient_dpi(request):
                 creator=doctor,  # Doctor is the creator of the EHR
             )
         elif role == 'administratifstaff':
-            # Find the referring doctor
-            referring_doctor = Doctor.objects.filter(name=referring_doctor_name, surname=referring_doctor_surname).first()
-
-            if not referring_doctor:
-                return JsonResponse({"error": "Referring doctor does not exist."}, status=400)
+            # Find the referring doctor using ID directly
+            referring_doctor = get_object_or_404(Doctor, id=referring_doctor_id)
 
             admin_staff = get_object_or_404(administratifStaff, id=decoded.get('user_id'))
             # Create EHR linked to administratif staff and referring doctor
@@ -149,3 +145,114 @@ def create_patient_dpi(request):
             },
             'ehr_id': ehr.id
         })
+from django.http import JsonResponse
+from api.models import (
+    Patient, EHR, BiologyReport, RadiologyReport, Prescription, 
+    Diagnostic, Consultation, MedicalCertificate, CareProvided, 
+    Observation, MedicationAdministered
+)
+from django.shortcuts import get_object_or_404
+import jwt
+from django.conf import settings
+import json
+
+
+def consultation_dpi(request):
+    # Ensure the method is GET
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+    # Get JWT from headers
+    token = request.headers.get("Authorization")
+    if not token:
+        return JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+    token = token.split(" ")[1]  # Assuming Bearer Token
+
+    try:
+        # Decode JWT
+        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        role = decoded.get("role", "").strip().lower()  # Normalize role
+
+        # Validate role
+        valid_roles = ['doctor', 'administratifstaff', 'patient', 'nurse', 'radiologist', 'labtechnician']
+        if role not in valid_roles:
+            return JsonResponse({"error": "Unauthorized role"}, status=403)
+
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"error": "Token has expired"}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({"error": "Invalid token"}, status=401)
+
+    # Get data from request body (JSON)
+    try:
+        body = json.loads(request.body)
+        ehr_id = body.get('ehr_id')  # Expecting 'ehr_id' in the JSON body
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
+    if not ehr_id:
+        return JsonResponse({'error': 'ehr_id is required'}, status=400)
+
+    # Retrieve EHR using ehr_id
+    ehr = get_object_or_404(EHR, id=ehr_id)
+
+    # Assuming EHR has a ForeignKey to Patient, adjust if needed
+    patient = get_object_or_404(Patient, ehr=ehr)  # Ensure the relationship is correct here
+
+    # Get biological reports related to the EHR
+    biological_reports = BiologyReport.objects.filter(ehr=ehr).values()
+
+    # Get radiological reports related to the EHR
+    radiology_reports = RadiologyReport.objects.filter(ehr=ehr).values()
+
+    # Get prescriptions related to the EHR
+    prescriptions = Prescription.objects.filter(ehr=ehr).values()
+
+    # Get diagnostics related to the prescriptions
+    diagnostics = Diagnostic.objects.filter(prescription__ehr=ehr).values()
+
+    # Get consultations related to the diagnostics
+    consultations = Consultation.objects.filter(diagnostic__prescription__ehr=ehr).values()
+
+    # Get medical certificates related to the EHR
+    medical_certificates = MedicalCertificate.objects.filter(ehr=ehr).values()
+
+    # Get care provided records related to the EHR
+    care_provided = CareProvided.objects.filter(ehr=ehr)
+
+    # Extend care_provided with observations and administered medications
+    care_provided_data = []
+    for care in care_provided:
+        # Fetch observations related to the care provided
+        observations = Observation.objects.filter(care_provided=care).values()
+        
+        # Fetch administered medications related to the care provided
+        medications = MedicationAdministered.objects.filter(care_provided=care).values()
+
+        # Append data with observations and medications
+        care_provided_data.append({
+            'id': care.id,
+            'date': care.date,
+            'observations': list(observations),
+            'administered_medications': list(medications)
+        })
+
+    # Return the aggregated information
+    return JsonResponse({
+        'patient_info': {
+            'name': patient.name,
+            'surname': patient.surname,
+            'date_of_birth': patient.dateOfBirth,
+            'nss': patient.NSS,
+            'blood_type': patient.bloodType,
+            'gender': patient.gender,
+        },
+        'biological_reports': list(biological_reports),
+        'radiological_reports': list(radiology_reports),
+        'prescriptions': list(prescriptions),
+        'diagnostics': list(diagnostics),
+        'consultations': list(consultations),
+        'medical_certificates': list(medical_certificates),
+        'care_provided': care_provided_data
+    })
