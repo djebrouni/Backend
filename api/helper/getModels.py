@@ -2,19 +2,21 @@ from api.models import Patient, Doctor, Nurse, LabTechnician, Radiologist, admin
 from api.const.ROLES import ROLES
 
 def getModel(role):
-    if role == ROLES.Patient.value:
+    # Normalize role input
+    role = role.strip().lower()  # Trim spaces and lowercase
+
+    # Match roles with normalized values
+    if role == ROLES.Patient.value.lower():
         return Patient
-    elif role == ROLES.Medecin.value:
+    elif role == ROLES.Doctor.value.lower():
         return Doctor
-    elif role == ROLES.Infirmier.value:
+    elif role == ROLES.Nurse.value.lower():
         return Nurse
-    elif role == ROLES.Laboratin.value:
+    elif role == ROLES.LabTechnician.value.lower():
         return LabTechnician
-    elif role == ROLES.Radiologue.value:
+    elif role == ROLES.Radiologist.value.lower():
         return Radiologist
-    elif role == ROLES.Personnel.value:
+    elif role == ROLES.administratifStaff.value.lower():
         return administratifStaff
-    # elif role == ROLES.Admin.value:
-    #     return Admin  # Or return any specific model for Admin, if you have it.
     else:
-        return None
+        raise ValueError(f"User role '{role}' not recognized.")

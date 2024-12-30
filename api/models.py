@@ -18,36 +18,47 @@ class BloodType(Enum):
         O_POSITIVE = 'O+'
         O_NEGATIVE = 'O-'
 
-#EHR model 
+
+
+
+# EHR model
 class EHR(models.Model):
     id = models.AutoField(primary_key=True)
-    
-    administratifStaff = models.ForeignKey(
-        'administratifStaff',  # Link to administratifStaff
-        on_delete=models.CASCADE,  
-        related_name='ehr_staff', 
+
+    # Creator of the EHR can be either an administratif staff or a doctor
+    creator = models.ForeignKey(
+        'Doctor',  # Link to Doctor (optional), since Doctor can create an EHR
+        on_delete=models.SET_NULL,
+        related_name='created_ehrs',
+        null=True, 
+        blank=True  # A doctor can create an EHR
+    )
+
+    creator_staff = models.ForeignKey(
+        'administratifStaff',  # Link to administratifStaff (optional)
+        on_delete=models.SET_NULL,
+        related_name='created_ehrs',
         null=True,
-        blank=True
+        blank=True  # Administrative staff can create an EHR
     )
 
 
-#doctor model 
+# Doctor model
 class Doctor(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     phoneNumber = models.CharField(max_length=10)
-    specialization = models.CharField(max_length=45) 
+    specialization = models.CharField(max_length=45)
     email = models.CharField(max_length=70)
     password = models.CharField(max_length=200)
-    role = models.CharField(max_length=50, default='doctor') 
+    role = models.CharField(max_length=50, default='doctor')
 
     ehr = models.ManyToManyField(
         EHR,  # Reference to the EHR model
-        related_name='doctors',  # Allows access to all doctors associated with a specific EHR
-        blank=True  
+        related_name='doctors',
+        blank=True
     )
-
 
 
 
@@ -59,7 +70,7 @@ class Hospital(models.Model):
 # Patient model
 class Patient(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing primary key
-    NSS = models.PositiveIntegerField(unique=True)  # National Social Security number, for example
+    NSS = models.CharField(max_length=255, unique=True)  # Ensure the max_length is sufficient and the value is unique
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
     dateOfBirth = models.DateField()
