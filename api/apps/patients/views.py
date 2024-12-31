@@ -17,16 +17,23 @@ def create_patient_dpi(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+   
     # Get JWT from headers
     token = request.headers.get("Authorization")
     if not token:
         return JsonResponse({"error": "Authorization token is missing"}, status=401)
+
     token = token.split(" ")[1]  # Assuming Bearer Token
+
     try:
         # Decode JWT
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()  # Normalize role
 
+        # Validate role
+        valid_roles = ['doctor', 'administratifstaff']
+        if role not in valid_roles:
+            return JsonResponse({"error": "Unauthorized role"}, status=403)
         # Pass role to getModel
         model = getModel(role)  # Validate role here
     except jwt.ExpiredSignatureError:
