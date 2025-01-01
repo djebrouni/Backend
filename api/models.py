@@ -393,4 +393,17 @@ class BiologicalAssessment(models.Model):
         related_name='biological_assessments'
     )
 
+class RadiologyAssessment(models.Model):
+    id = models.AutoField(primary_key=True)
+    date = models.DateField()
+    patient_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    age = models.IntegerField()
+    gender = models.CharField(max_length=10)
+    imaging_type = models.CharField(max_length=255)  # Type d'imagerie (IRM, Scanner, etc.)
     
+    ehr = models.ForeignKey(
+        EHR,  # Relier avec l'EHR du patient
+        on_delete=models.CASCADE,
+        related_name='radiology_assessments'
+    )

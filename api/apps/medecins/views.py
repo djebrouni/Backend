@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import jwt
 from django.conf import settings
-from api.models import Patient, EHR
+from api.models import Patient, EHR, RadiologyAssessment
 import json
 from django.http import JsonResponse
 from django.views import View
@@ -219,6 +219,7 @@ class ConsultationUpdateView(View):
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::CREATION DU BILAN ASSESMET ET SON DISPLAY:::::::::::::::::::::::::::::::::::::::
 
 @method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class DisplayBiologicalAssessmentView(View):
     def authenticate_user(self, request):
         """
@@ -242,20 +243,26 @@ class DisplayBiologicalAssessmentView(View):
         if not is_authenticated:
             return error_response
 
-        # Vérification si le bilan biologique existe pour l'EHR donné
-        biological_assessment = get_object_or_404(BiologicalAssessment, ehr_id=ehr_id)
+        # Récupérer toutes les évaluations biologiques associées à l'EHR donné
+        biological_assessments = BiologicalAssessment.objects.filter(ehr_id=ehr_id)
+
+        # Vérification si des évaluations biologiques existent
+        if not biological_assessments:
+            return JsonResponse({"error": "No biological assessments found for this EHR ID"}, status=404)
 
         # Structurer les données pour la réponse JSON
-        response_data = {
-            "date": biological_assessment.date.strftime("%Y-%m-%d"),
-            "patient_name": biological_assessment.patient_name,
-            "date_of_birth": biological_assessment.date_of_birth.strftime("%Y-%m-%d"),
-            "age": biological_assessment.age,
-            "gender": biological_assessment.gender,
-            "tests_to_conduct": biological_assessment.tests_to_conduct,
-        }
+        response_data = []
+        for assessment in biological_assessments:
+            response_data.append({
+                "date": assessment.date.strftime("%Y-%m-%d"),
+                "patient_name": assessment.patient_name,
+                "date_of_birth": assessment.date_of_birth.strftime("%Y-%m-%d"),
+                "age": assessment.age,
+                "gender": assessment.gender,
+                "tests_to_conduct": assessment.tests_to_conduct,
+            })
 
-        return JsonResponse(response_data, status=200)
+        return JsonResponse(response_data, safe=False, status=200)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateBiologicalAssessmentView(View):
@@ -323,3 +330,136 @@ class CreateBiologicalAssessmentView(View):
         return JsonResponse({'message': 'Biological assessment created successfully', 'assessment_id': biological_assessment.id})
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::REMPLIR LE BILAN ET SON DISPLAY::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::::::::::::::::::::::::::::::::::::::::::CREATION RADIOLOGY ASSESMEENT ET SON DISPLAY::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+import json
+import jwt
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+import json
+import jwt
+from django.conf import settings
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateRadiologyAssessmentView(View):
+    def get_user_role_from_token(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+        try:
+            token = token.split(" ")[1]  # Assuming Bearer Token
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            return decoded.get("role", "").strip().lower(), None
+        except jwt.ExpiredSignatureError:
+            return None, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return None, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def post(self, request, ehr_id):
+        # Vérifier et récupérer le rôle de l'utilisateur à partir du jeton
+        role, error_response = self.get_user_role_from_token(request)
+        if error_response:
+            return error_response
+
+        # Vérifier si l'utilisateur est un médecin
+        if role != "doctor":
+            return JsonResponse({"error": "Only doctors can perform this action"}, status=403)
+
+        # Récupérer l'EHR du patient
+        ehr = get_object_or_404(EHR, id=ehr_id)
+
+        # Récupérer les données JSON envoyées
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
+        # Extraire les données de la requête
+        date = data.get('date')
+        patient_name = data.get('patient_name')
+        date_of_birth = data.get('date_of_birth')
+        age = data.get('age')
+        gender = data.get('gender')
+        imaging_type = data.get('imaging_type')
+
+        # Validation des champs requis
+        if not date or not patient_name or not date_of_birth or not age or not gender or not imaging_type:
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        # Conversion et validation des dates
+        try:
+            formatted_date = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            return JsonResponse({"error": "Invalid date format for 'date'. It must be in DD/MM/YYYY format."}, status=400)
+
+        try:
+            formatted_dob = datetime.strptime(date_of_birth, "%d/%m/%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            return JsonResponse({"error": "Invalid date_of_birth format. It must be in DD/MM/YYYY format."}, status=400)
+
+        # Création de l'évaluation radiologique
+        radiology_assessment = RadiologyAssessment.objects.create(
+            date=formatted_date,
+            patient_name=patient_name,
+            date_of_birth=formatted_dob,
+            age=age,
+            gender=gender,
+            imaging_type=imaging_type,
+            ehr=ehr
+        )
+
+        return JsonResponse({
+            'message': 'Radiology assessment created successfully',
+            'assessment_id': radiology_assessment.id
+        })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DisplayRadiologyAssessmentView(View):
+    def authenticate_user(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+        try:
+            token = token.split(" ")[1]  # En supposant que le token est un Bearer Token
+            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            return True, None
+        except jwt.ExpiredSignatureError:
+            return False, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return False, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def get(self, request, ehr_id):
+        # Authentification
+        is_authenticated, error_response = self.authenticate_user(request)
+        if not is_authenticated:
+            return error_response
+
+        # Récupérer toutes les évaluations radiologiques associées à l'EHR donné
+        radiology_assessments = RadiologyAssessment.objects.filter(ehr_id=ehr_id)
+
+        # Vérifier si des évaluations radiologiques existent
+        if not radiology_assessments:
+            return JsonResponse({"error": "No radiology assessments found for this EHR ID"}, status=404)
+
+        # Structurer les données pour la réponse JSON
+        response_data = []
+        for assessment in radiology_assessments:
+            response_data.append({
+                "date": assessment.date.strftime("%Y-%m-%d"),
+                "patient_name": assessment.patient_name,
+                "date_of_birth": assessment.date_of_birth.strftime("%Y-%m-%d"),
+                "age": assessment.age,
+                "gender": assessment.gender,
+                "imaging_type": assessment.imaging_type,
+            })
+
+        return JsonResponse(response_data, safe=False, status=200)
