@@ -378,3 +378,19 @@ class MedicationAdministered(models.Model):
         on_delete=models.CASCADE
     )
 
+class BiologicalAssessment(models.Model):
+    id = models.AutoField(primary_key=True)
+    date = models.DateField()
+    patient_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    age = models.IntegerField()
+    gender = models.CharField(max_length=10)
+    tests_to_conduct = models.TextField()  # Liste des tests à réaliser
+
+    ehr = models.ForeignKey(
+        EHR,  # Relier avec l'EHR du patient
+        on_delete=models.CASCADE,
+        related_name='biological_assessments'
+    )
+
+    
