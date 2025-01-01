@@ -393,6 +393,15 @@ class BiologicalAssessment(models.Model):
         related_name='biological_assessments'
     )
 
+    # Lien avec le médecin qui effectue l'évaluation
+    doctor = models.ForeignKey(
+        Doctor,  # Relier avec le modèle Doctor
+        on_delete=models.CASCADE,  # Si le médecin est supprimé, supprimer les évaluations biologiques associées
+        related_name='biological_assessments',  # Permet d'accéder aux évaluations biologiques du médecin
+        null=True,  # Rendre ce champ optionnel
+        blank=True  # Rendre ce champ optionnel dans le formulaire
+    )
+
 class RadiologyAssessment(models.Model):
     id = models.AutoField(primary_key=True)
     date = models.DateField()
@@ -401,9 +410,18 @@ class RadiologyAssessment(models.Model):
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
     imaging_type = models.CharField(max_length=255)  # Type d'imagerie (IRM, Scanner, etc.)
-    
+
     ehr = models.ForeignKey(
         EHR,  # Relier avec l'EHR du patient
         on_delete=models.CASCADE,
         related_name='radiology_assessments'
+    )
+
+    # Lien avec le médecin qui effectue l'évaluation
+    doctor = models.ForeignKey(
+        Doctor,  # Relier avec le modèle Doctor
+        on_delete=models.CASCADE,  # Si le médecin est supprimé, supprimer les évaluations biologiques associées
+        related_name='radiology_assessments',  # Permet d'accéder aux évaluations biologiques du médecin
+        null=True,  # Rendre ce champ optionnel
+        blank=True  # Rendre ce champ optionnel dans le formulaire
     )
