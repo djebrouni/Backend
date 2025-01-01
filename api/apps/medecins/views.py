@@ -74,10 +74,14 @@ def rechercheDpiParNss(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-
 @method_decorator(csrf_exempt, name='dispatch')  # Désactive la vérification CSRF
 class ConsultationSummaryView(View):
     def get(self, request, consultation_id):
+        # Vérification du token JWT
+        error_response = validate_user_token(request)
+        if error_response:  # Si le token est invalide ou manquant
+            return error_response
+
         try:
             # Récupérer l'objet Consultation existant
             consultation = Consultation.objects.get(id=consultation_id)
@@ -94,22 +98,23 @@ class ConsultationSummaryView(View):
         except Consultation.DoesNotExist:
             return JsonResponse({'error': 'Consultation not found'}, status=404)
 
-def get_user_role_from_token(request):
+
+def validate_user_token(request):
     """
-    Extract user role from the Authorization token.
+    Validate the Authorization token.
     """
     token = request.headers.get("Authorization")
     if not token:
-        return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+        return JsonResponse({"error": "Authorization token is missing"}, status=401)
     try:
         # Extract and decode the token
         token = token.split(" ")[1]  # Assuming Bearer Token
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        return decoded.get("role", "").strip().lower(), None
+        jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        return None  # Token is valid
     except jwt.ExpiredSignatureError:
-        return None, JsonResponse({"error": "Token has expired"}, status=401)
+        return JsonResponse({"error": "Token has expired"}, status=401)
     except jwt.InvalidTokenError:
-        return None, JsonResponse({"error": "Invalid token"}, status=401)
+        return JsonResponse({"error": "Invalid token"}, status=401)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ConsultationCreateView(View):

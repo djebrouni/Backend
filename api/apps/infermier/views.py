@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from api.models import CareProvided, Nurse, EHR
+from api.models import CareProvided, Nurse, EHR, Observation
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -27,26 +27,22 @@ def getModel(role):
 @method_decorator(csrf_exempt, name="dispatch")  # Désactive la vérification CSRF
 class CareProvidedCreateView(View):
     def post(self, request):
-        # Récupérer et valider le token JWT
+        # Vérification et validation du token JWT
         token = request.headers.get("Authorization")
         if not token:
             return JsonResponse({"error": "Authorization token is missing"}, status=401)
         try:
-            # Assumer un Bearer Token
-            token = token.split(" ")[1]
+            token = token.split(" ")[1]  # Assumer un Bearer Token
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             role = decoded.get("role", "").strip().lower()
 
             # Vérifier le rôle
             if role != "nurse":
                 return JsonResponse({"error": "Unauthorized role"}, status=403)
-
         except jwt.ExpiredSignatureError:
             return JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return JsonResponse({"error": "Invalid token"}, status=401)
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=400)
 
         # Traitement de la création
         try:
@@ -57,12 +53,16 @@ class CareProvidedCreateView(View):
             date = data.get("date")
             time = data.get("time")
             care_actions = data.get("care_actions")
+            observation_description = data.get("observation_description")  # Description de l'observation
+
+            if not observation_description:
+                return JsonResponse({"error": "Observation description is required"}, status=400)
 
             # Récupérer les objets associés
             nurse = Nurse.objects.get(id=nurse_id)
             ehr = EHR.objects.get(id=ehr_id)
 
-            # Créer un enregistrement
+            # Créer l'enregistrement CareProvided
             care_provided = CareProvided.objects.create(
                 nurse=nurse,
                 ehr=ehr,
@@ -71,8 +71,18 @@ class CareProvidedCreateView(View):
                 care_actions=care_actions,
             )
 
+            # Créer et attacher une Observation au CareProvided
+            observation = Observation.objects.create(
+                description=observation_description,
+                care_provided=care_provided
+            )
+
             return JsonResponse(
-                {"id": care_provided.id, "message": "Care provided created successfully"},
+                {
+                    "id": care_provided.id,
+                    "observation_id": observation.id,
+                    "message": "Care provided and observation created successfully",
+                },
                 status=201,
             )
 
@@ -84,8 +94,6 @@ class CareProvidedCreateView(View):
             return JsonResponse({"error": f"Missing field: {str(e)}"}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-
 @method_decorator(csrf_exempt, name="dispatch")  # Désactive la vérification CSRF
 class CareProvidedUpdateView(View):
     def post(self, request, care_provided_id):
@@ -96,13 +104,7 @@ class CareProvidedUpdateView(View):
         try:
             # Assumer un Bearer Token
             token = token.split(" ")[1]
-            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            role = decoded.get("role", "").strip().lower()
-
-            # Vérifier le rôle
-            if role != "nurse":
-                return JsonResponse({"error": "Unauthorized role"}, status=403)
-
+            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
             return JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
@@ -116,11 +118,12 @@ class CareProvidedUpdateView(View):
             date = data.get("date")
             time = data.get("time")
             care_actions = data.get("care_actions")
+            observation_description = data.get("observation_description")
 
             # Récupérer l'enregistrement
             care_provided = CareProvided.objects.get(id=care_provided_id)
 
-            # Mettre à jour les champs
+            # Mettre à jour les champs de CareProvided
             if date:
                 care_provided.date = date
             if time:
@@ -129,8 +132,21 @@ class CareProvidedUpdateView(View):
                 care_provided.care_actions = care_actions
 
             care_provided.save()
+
+            # Mettre à jour ou créer une Observation associée
+            if observation_description:
+                observation, created = Observation.objects.get_or_create(
+                    care_provided=care_provided
+                )
+                observation.description = observation_description
+                observation.save()
+
             return JsonResponse(
-                {"message": "CareProvided updated successfully"}, status=200
+                {
+                    "message": "CareProvided and observation updated successfully",
+                    "care_provided_id": care_provided.id,
+                },
+                status=200,
             )
 
         except CareProvided.DoesNotExist:
@@ -139,23 +155,50 @@ class CareProvidedUpdateView(View):
             return JsonResponse({"error": f"Missing field: {str(e)}"}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
+
 @method_decorator(csrf_exempt, name='dispatch')  # Désactive la vérification CSRF
 class CareProvidedDetailView(View):
     def get(self, request, care_provided_id):
+        # Vérification du token JWT
+        token = request.headers.get("Authorization")
+        if not token:
+            return JsonResponse({"error": "Authorization token is missing"}, status=401)
+        try:
+            # Assumer un Bearer Token
+            token = token.split(" ")[1]
+            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+
+        # Si l'utilisateur est authentifié, récupérer les détails
         try:
             # Récupérer l'objet CareProvided existant
             care_provided = CareProvided.objects.get(id=care_provided_id)
 
-            # Retourner les informations de l'objet CareProvided
+            # Récupérer les observations associées
+            observations = care_provided.observations.all()
+
+            # Préparer les données des observations
+            observation_data = [
+                {
+                    'id': observation.id,
+                    'description': observation.description
+                } for observation in observations
+            ]
+
+            # Retourner les informations de l'objet CareProvided et les observations
             return JsonResponse({
                 'id': care_provided.id,
                 'nurse_id': care_provided.nurse.id,
                 'ehr_id': care_provided.ehr.id,
                 'date': care_provided.date,
                 'time': care_provided.time,
-                'care_actions': care_provided.care_actions
+                'care_actions': care_provided.care_actions,
+                'observations': observation_data  # Inclure les observations dans la réponse
             }, status=200)
 
         except CareProvided.DoesNotExist:
             return JsonResponse({'error': 'CareProvided not found'}, status=404)
- 
