@@ -115,6 +115,23 @@ def validate_user_token(request):
         return JsonResponse({"error": "Token has expired"}, status=401)
     except jwt.InvalidTokenError:
         return JsonResponse({"error": "Invalid token"}, status=401)
+def get_user_role_from_token(request):
+    """
+    Extrait le rôle de l'utilisateur à partir du token d'autorisation.
+    """
+    token = request.headers.get("Authorization")
+    if not token:
+        return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+    try:
+        # Extraire et décoder le token
+        token = token.split(" ")[1]  # En supposant que le token est un Bearer Token
+        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        return decoded.get("role", "").strip().lower(), None
+    except jwt.ExpiredSignatureError:
+        return None, JsonResponse({"error": "Token has expired"}, status=401)
+    except jwt.InvalidTokenError:
+        return None, JsonResponse({"error": "Invalid token"}, status=401)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ConsultationCreateView(View):
