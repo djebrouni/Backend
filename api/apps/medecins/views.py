@@ -611,3 +611,110 @@ class DisplayBiologyReportsView(View):
             'message': 'Biology reports retrieved successfully',
             'reports': reports_data
         })
+from django.http import JsonResponse 
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+import json
+import jwt
+from django.conf import settings
+from api.models import EHR, Prescription, MedicalTreatment, Medecine, Doctor, Patient
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+import re
+from datetime import datetime
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreatePrescriptionView(View):
+    def post(self, request, *args, **kwargs):
+        # Ensure the method is POST
+        if request.method != 'POST':
+            return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+        # Get JWT from headers
+        token = request.headers.get("Authorization")
+        if not token:
+            return JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        token = token.split(" ")[1]  # Assuming Bearer Token
+
+        try:
+            # Decode JWT
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            role = decoded.get("role", "").strip().lower()  # Normalize role
+
+            # Validate role
+            valid_roles = ['doctor']
+            if role not in valid_roles:
+                return JsonResponse({"error": "Unauthorized role"}, status=403)
+
+
+            # If role is doctor, fetch doctor
+            if role == 'doctor':
+              doctor = get_object_or_404(Doctor, id=decoded.get('user_id'))                
+              print(f"Doctor: {doctor}")
+
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+        # Parse request body
+        try:
+            data = json.loads(request.body)
+            ehr_id = data.get("ehr_id")
+            treatments = data.get("treatments", [])
+
+            # Validate EHR ID
+            ehr = EHR.objects.get(id=ehr_id)
+
+            # Ensure EHR is linked to a patient
+            patient = Patient.objects.get(ehr=ehr)
+
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": "EHR or Patient not found"}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        # Create prescription
+        try:
+            prescription = Prescription.objects.create(
+                isValid=False,
+                doctor=doctor,
+                ehr=ehr
+            )
+
+            # Create MedicalTreatment records
+            for treatment in treatments:
+                medicine_name = treatment.get("medicine")
+                dose = treatment.get("dose")
+                duration = treatment.get("duration")
+
+                # Validate inputs
+                if not medicine_name or dose is None or duration is None:
+                    return JsonResponse({"error": "Missing treatment details"}, status=400)
+
+                # Fetch or create medicine
+                medicine, created = Medecine.objects.get_or_create(name=medicine_name)
+
+                # Create MedicalTreatment
+                MedicalTreatment.objects.create(
+                    dose=dose,
+                    Duration=duration,
+                    medicine=medicine,
+                    prescription=prescription
+                )
+
+            # Return success response
+            return JsonResponse({
+                "message": "Prescription created successfully",
+                "prescription_id": prescription.id
+            }, status=201)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({"error": "Invalid request method"}, status=405)

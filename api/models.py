@@ -232,12 +232,7 @@ class Prescription(models.Model):
 class MedicalTreatment(models.Model):
     dose = models.FloatField(validators=[MinValueValidator(0)])    
     Duration = models.IntegerField(default=0)
-    medicine = models.ForeignKey(
-        Medecine,
-        on_delete=models.CASCADE,  # Cascade delete: if a Medicine is deleted, delete related MedicalTreatments
-        related_name='medical_treatments',  # Allows accessing the treatments related to a specific medicine
-    )
-
+    medicine = models.OneToOneField(Medecine, on_delete=models.CASCADE)
     prescription = models.ForeignKey(
         Prescription,
         on_delete=models.CASCADE,  # If the Prescription is deleted, delete related MedicalTreatments
@@ -316,23 +311,29 @@ class BiologyReport(models.Model):
     cholesterolLevel = models.FloatField()
     completeBloodCount = models.FloatField()
     doctor = models.ForeignKey(
-        Doctor,
+        'Doctor',
         on_delete=models.CASCADE,
         related_name='biology_reports'
     )
     lab_technician = models.ForeignKey(
-        LabTechnician,
+        'LabTechnician',
         on_delete=models.CASCADE,
-        related_name='biology_reports'
+        related_name='biology_reports',
+        null=True,  # Make lab_technician optional
+        blank=True  # Make lab_technician optional in forms
     )
-     # Link to the EHR model
+    # Link to the EHR model
     ehr = models.ForeignKey(
-        EHR,
-        on_delete=models.CASCADE,  # If the EHR is deleted, delete the related BiologyReport
-        related_name='biology_reports',  # Allows accessing all BiologyReports for a specific EHR
+        'EHR',
+        on_delete=models.CASCADE,
+        related_name='biology_reports',
         null=True,  # Optional: if not all BiologyReports have an EHR linked
         blank=True  # Optional: if not all BiologyReports have an EHR linked initially
     )
+    date = models.DateField(auto_now_add=True)  # Set the date to the current date by default
+
+    def __str__(self):
+        return f"Biology Report {self.id} - {self.date}"
 
 # CareProvided model
 class CareProvided(models.Model):
@@ -401,6 +402,14 @@ class BiologicalAssessment(models.Model):
         null=True,  # Rendre ce champ optionnel
         blank=True  # Rendre ce champ optionnel dans le formulaire
     )
+    # Mandatory One-to-One Relationship with BiologyReport
+    biology_report = models.OneToOneField(
+        BiologyReport,  # Linking to BiologyReport model
+        on_delete=models.CASCADE,  # Deleting the assessment also deletes the related report
+        related_name='assessment',  # Allows reverse lookup from BiologyReport
+        null=True,  
+        blank=True
+    )
 
 class RadiologyAssessment(models.Model):
     id = models.AutoField(primary_key=True)
@@ -424,4 +433,13 @@ class RadiologyAssessment(models.Model):
         related_name='radiology_assessments',  # Permet d'accéder aux évaluations biologiques du médecin
         null=True,  # Rendre ce champ optionnel
         blank=True  # Rendre ce champ optionnel dans le formulaire
+    )
+
+# Mandatory One-to-One Relationship with RadiologyReport
+    radiology_report = models.OneToOneField(
+        RadiologyReport,  # Linking to RadiologyReport model
+        on_delete=models.CASCADE,  # Deleting the assessment also deletes the related report
+        related_name='assessment',  # Allows reverse lookup from RadiologyReport
+        null=True,  
+        blank=True
     )

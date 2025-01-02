@@ -5,7 +5,7 @@ from .views import rechercheDpiParNss
 from django.urls import path
 from .views import ConsultationCreateView, ConsultationUpdateView ,ConsultationSummaryView,CreateBiologicalAssessmentView,DisplayBiologicalAssessmentView,DisplayRadiologyAssessmentView,CreateRadiologyAssessmentView,FillBiologyReportView,DisplayBiologyReportsView
 
-
+from .views import CreatePrescriptionView
 
 urlpatterns = [
       path('search-patient/', rechercheDpiParNss, name='search_patient'),
@@ -18,4 +18,5 @@ urlpatterns = [
    path('display_radiology_assessment/<int:ehr_id>/', DisplayRadiologyAssessmentView.as_view(), name='display_radiology_assessment'),
   path('create_biology_report/<int:ehr_id>/', FillBiologyReportView.as_view(), name='create_biology_report'),
    path('display_biology_reports/<int:ehr_id>/', DisplayBiologyReportsView.as_view(), name='display_biology_reports'),
+   path('prescriptions/create/', CreatePrescriptionView.as_view(), name='create_prescription'),
 ]
