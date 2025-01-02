@@ -140,3 +140,80 @@ class SignInView(View):
             'token': token,
             'role': role
         }, status=200)
+
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import jwt
+import json
+from api.models import administratifStaff, Doctor, LabTechnician, Nurse, Patient, Radiologist
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateProfileView(View):
+    def put(self, request):
+        # Extract and validate the Authorization token
+        token = request.headers.get("Authorization")
+        if not token:
+            return JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            # Decode token
+            token = token.split(" ")[1]  # Assuming Bearer Token
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            role = decoded.get("role", "").strip().lower()
+            user_id = decoded.get("user_id")
+
+            # Validate role
+            valid_roles = ['administratifstaff', 'nurse', 'doctor', 'radiologist', 'labtechnician', 'patient']
+            if role not in valid_roles:
+                return JsonResponse({"error": "Unauthorized role"}, status=403)
+
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+
+        # Parse input data
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data"}, status=400)
+
+        # Process update based on role
+        try:
+            if role in ['administratifstaff', 'nurse', 'doctor', 'radiologist', 'labtechnician']:
+                # Update staff profile
+                model = {
+                    'administratifstaff': administratifStaff,
+                    'nurse': Nurse,
+                    'doctor': Doctor,
+                    'radiologist': Radiologist,
+                    'labtechnician': LabTechnician
+                }[role]
+
+                user = model.objects.get(id=user_id)
+                user.name = data.get('name', user.name)
+                user.surname = data.get('surname', user.surname)
+                user.phoneNumber = data.get('phoneNumber', user.phoneNumber)
+                user.email = data.get('email', user.email)
+                if 'password' in data:
+                    user.password = data['password']
+                user.save()
+
+            elif role == 'patient':
+                # Update patient profile
+                user = Patient.objects.get(id=user_id)
+                user.email = data.get('email', user.email)
+                user.phoneNumber = data.get('phoneNumber', user.phoneNumber)
+                if 'password' in data:
+                    user.password = data['password']
+                user.save()
+
+            return JsonResponse({"message": "Profile updated successfully"}, status=200)
+
+        except model.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
