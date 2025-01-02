@@ -6,5 +6,8 @@ urlpatterns = [
     path('create_patient_dpi/', create_patient_dpi, name='create_patient_dpi'),
    
     path('consultation-dpi/', consultation_dpi, name='consultation_dpi'),
+    path('update-profile/', UpdateProfileView.as_view(), name='update-profile'),
+    path('profile/', ProfileView.as_view(), name='profile'),
+
 
 ]
