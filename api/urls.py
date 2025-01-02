@@ -7,5 +7,7 @@ urlpatterns = [
     path('medecins/', include('api.apps.medecins.urls')),    
     path('patients/', include('api.apps.patients.urls')),    
     path('infermier/', include('api.apps.infermier.urls')), 
-
+    path('labtechnicians/', include('api.apps.labtechnicians.urls')), 
+    path('get/', include('api.apps.get.urls')), 
+    path('sgph/', include('api.apps.sgph.urls')),
 ]
