@@ -8,6 +8,9 @@ from .views import ConsultationCreateView, ConsultationUpdateView ,ConsultationS
 from django.conf import settings
 from django.conf.urls.static import static
 
+from .views import CreatePrescriptionView 
+
+
 urlpatterns = [
       path('search-patient/', rechercheDpiParNss, name='search_patient'),
       #creation et mise ajour de consultation
@@ -24,9 +27,12 @@ urlpatterns = [
    #creation bilan radiolo
    path('create_radiology_assessment/<int:ehr_id>/', CreateRadiologyAssessmentView.as_view(), name='create_radiology_assessment'),
    path('display_radiology_assessment/<int:ehr_id>/', DisplayRadiologyAssessmentView.as_view(), name='display_radiology_assessment'),
+
    #remplisssage des resultats et affichage des resultats radio
     path('display-radiology-report/<int:assessment_id>/', DisplayRadiologyReportView.as_view(), name='display_radiology_report'),
     path('fill-radiology-report/<int:assessment_id>/', FillRadiologyReportView.as_view(), name='fill_radiology_report'),
     #creation prescription
      path('prescriptions/create/', CreatePrescriptionView.as_view(), name='create_prescription'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+ 

@@ -443,3 +443,22 @@ class RadiologyAssessment(models.Model):
         null=True,  
         blank=True
     )
+
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User, Group, Permission
+
+class SGPH(AbstractUser):
+   
+    role = models.CharField(max_length=50, default='sgph')
+    groups = models.ManyToManyField(
+        Group,
+        related_name='sgph_groups',  # Specify a unique related_name
+        blank=True
+    )
+    
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='sgph_user_permissions',  # Specify a unique related_name
+        blank=True
+    )
