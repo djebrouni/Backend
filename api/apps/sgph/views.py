@@ -11,7 +11,7 @@ from django.conf import settings
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ValidatePrescriptionView(View):
-    def post(self, request):
+    def get(self, request):
         # Validate Token
         token = request.headers.get("Authorization")
         if not token:
@@ -42,7 +42,9 @@ class ValidatePrescriptionView(View):
             # Fetch the prescription
             prescription = Prescription.objects.get(id=prescription_id)
 
-            
+              # Check if the prescription is already validated
+            if prescription.isValid:
+                return JsonResponse({"message": "Prescription is already validated."}, status=200)
 
             # Mark prescription as valid
             prescription.isValid = True

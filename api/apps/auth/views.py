@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.hashers import check_password
 
-from api.models import administratifStaff, Doctor, LabTechnician, Nurse, Patient, Radiologist
+from api.models import administratifStaff, Doctor, LabTechnician, Nurse, Patient, Radiologist,sgph
 
 class PatientSignupView(APIView):
     def post(self, request):
@@ -104,7 +104,8 @@ class SignInView(View):
             LabTechnician,
             Nurse,
             Patient,
-            Radiologist
+            Radiologist,
+            sgph
         ]
 
         user = None
@@ -215,5 +216,105 @@ class UpdateProfileView(View):
 
         except model.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import json
+import jwt
+from django.conf import settings
+from api.models import Patient, Doctor, Radiologist, LabTechnician, Nurse, administratifStaff,EHR,Hospital
+@method_decorator(csrf_exempt, name='dispatch')
+class ProfileView(View):
+
+    def get(self, request):
+        # Extract and validate the Authorization token
+        token = request.headers.get("Authorization")
+        if not token:
+            return JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            # Decode token
+            token = token.split(" ")[1]  # Assuming Bearer Token
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            role = decoded.get("role", "").strip().lower()
+            user_id = decoded.get("user_id")
+
+            # Validate role
+            valid_roles = ['administratifstaff', 'nurse', 'doctor', 'radiologist', 'labtechnician', 'patient']
+            if role not in valid_roles:
+                return JsonResponse({"error": "Unauthorized role"}, status=403)
+
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+
+        # Fetch user profile based on role
+        try:
+            if role in ['administratifstaff', 'nurse', 'doctor', 'radiologist', 'labtechnician']:
+                model = {
+                    'administratifstaff': administratifStaff,
+                    'nurse': Nurse,
+                    'doctor': Doctor,
+                    'radiologist': Radiologist,
+                    'labtechnician': LabTechnician
+                }[role]
+
+                user = model.objects.get(id=user_id)
+                profile_data = {
+                    'name': user.name,
+                    'surname': user.surname,
+                    'phoneNumber': user.phoneNumber,
+                    'email': user.email,
+                    'role': role
+                }
+
+                # Additional info for doctors, radiologists, lab technicians
+                if role in ['doctor', 'radiologist', 'labtechnician']:
+                    profile_data.update({
+                        'specialization': user.specialization,
+                    })
+
+            elif role == 'patient':
+                try:
+                    # Fetch the patient and their EHR record
+                    patient = Patient.objects.get(id=user_id)
+
+                    # Retrieve profile data
+                    profile_data = {
+                        'name': patient.name,
+                        'surname': patient.surname,
+                        'phoneNumber': patient.phoneNumber,
+                        'email': patient.email,
+                        'role': role,
+                    }
+
+                    # Get the doctor from the EHR creator
+                    if patient.ehr.creator:
+                        doctor = patient.ehr.creator
+                        profile_data.update({
+                            'doctorName': doctor.name,
+                            'doctorSurname': doctor.surname,
+                            'hospitalName': patient.hospital.name,
+                        })
+
+                    # Include NSS if available
+                    profile_data['nss'] = patient.nss if hasattr(patient, 'nss') else None
+
+                   
+
+                except Patient.DoesNotExist:
+                    return JsonResponse({"error": "Patient not found"}, status=404)
+                except EHR.DoesNotExist:
+                    return JsonResponse({"error": "EHR not found for this patient"}, status=404)
+                except Hospital.DoesNotExist:
+                    return JsonResponse({"error": "Hospital not found for this patient"}, status=404)
+
+            return JsonResponse({"profile": profile_data}, status=200)
+
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
