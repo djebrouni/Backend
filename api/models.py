@@ -2,6 +2,8 @@ from enum import Enum
 from django.db import models
 from django.core.validators import MinValueValidator
 
+from api.const.ROLES import ROLES
+
 #enum class of tools  Sthetoscope or Thermometer or TensionMeter
 class Tool(Enum):
     STETHOSCOPE = 'Stethoscope'
@@ -73,21 +75,21 @@ class Patient(models.Model):
     NSS = models.CharField(max_length=255, unique=True)  # Ensure the max_length is sufficient and the value is unique
     name = models.CharField(max_length=45)
     surname = models.CharField(max_length=45)
-    dateOfBirth = models.DateField()
-    address = models.CharField(max_length=70)
-    phoneNumber = models.CharField(max_length=10)
-    mutual = models.CharField(max_length=45)
-    contactPerson = models.CharField(max_length=45)
+    dateOfBirth = models.DateField(null=True)
+    address = models.CharField(max_length=70, blank=True)
+    phoneNumber = models.CharField(max_length=10, blank=True)
+    mutual = models.CharField(max_length=45, blank=True)
+    contactPerson = models.CharField(max_length=45, blank=True)
     bloodType = models.CharField(
         max_length=11,
         choices=[(tag.name, tag.value) for tag in BloodType],
         default=BloodType.O_POSITIVE.name  # Default blood type
     )
-    gender = models.CharField(max_length=15)
+    gender = models.CharField(max_length=15, blank=True)
     email = models.EmailField(blank=True, null=True)
     profession = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=255, null=True, blank=True)  # nullable and blankable password field
-    role = models.CharField(max_length=50, default='patient') 
+    role = models.CharField(max_length=50, default=ROLES.Patient.value) 
 
     # Linking to the EHR model with a one-to-one relationship
     ehr = models.OneToOneField(
@@ -304,36 +306,36 @@ class RadiologyReport(models.Model):
     )
 
 # Biology Report model 
-class BiologyReport(models.Model):
-    id = models.AutoField(primary_key=True)
-    bloodSugarLevel = models.FloatField()
-    bloodPressure = models.FloatField()
-    cholesterolLevel = models.FloatField()
-    completeBloodCount = models.FloatField()
-    doctor = models.ForeignKey(
-        'Doctor',
-        on_delete=models.CASCADE,
-        related_name='biology_reports'
-    )
-    lab_technician = models.ForeignKey(
-        'LabTechnician',
-        on_delete=models.CASCADE,
-        related_name='biology_reports',
-        null=True,  # Make lab_technician optional
-        blank=True  # Make lab_technician optional in forms
-    )
-    # Link to the EHR model
-    ehr = models.ForeignKey(
-        'EHR',
-        on_delete=models.CASCADE,
-        related_name='biology_reports',
-        null=True,  # Optional: if not all BiologyReports have an EHR linked
-        blank=True  # Optional: if not all BiologyReports have an EHR linked initially
-    )
-    date = models.DateField(auto_now_add=True)  # Set the date to the current date by default
+# class BiologyReport(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     bloodSugarLevel = models.FloatField()
+#     bloodPressure = models.FloatField()
+#     cholesterolLevel = models.FloatField()
+#     completeBloodCount = models.FloatField()
+#     doctor = models.ForeignKey(
+#         'Doctor',
+#         on_delete=models.CASCADE,
+#         related_name='biology_reports'
+#     )
+#     lab_technician = models.ForeignKey(
+#         'LabTechnician',
+#         on_delete=models.CASCADE,
+#         related_name='biology_reports',
+#         null=True,  # Make lab_technician optional
+#         blank=True  # Make lab_technician optional in forms
+#     )
+#     # Link to the EHR model
+#     ehr = models.ForeignKey(
+#         'EHR',
+#         on_delete=models.CASCADE,
+#         related_name='biology_reports',
+#         null=True,  # Optional: if not all BiologyReports have an EHR linked
+#         blank=True  # Optional: if not all BiologyReports have an EHR linked initially
+#     )
+#     date = models.DateField(auto_now_add=True)  # Set the date to the current date by default
 
-    def __str__(self):
-        return f"Biology Report {self.id} - {self.date}"
+#     def __str__(self):
+#         return f"Biology Report {self.id} - {self.date}"
 
 # CareProvided model
 class CareProvided(models.Model):

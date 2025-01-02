@@ -3,8 +3,10 @@ from api.const.ROLES import ROLES
 
 def getModel(role):
     # Normalize role input
-    role = role.strip().lower()  # Trim spaces and lowercase
-
+    try:
+        role = role.strip().lower()  # Trim spaces and lowercase
+    except: return None
+    
     # Match roles with normalized values
     if role == ROLES.Patient.value.lower():
         return Patient
@@ -19,4 +21,4 @@ def getModel(role):
     elif role == ROLES.administratifStaff.value.lower():
         return administratifStaff
     else:
-        raise ValueError(f"User role '{role}' not recognized.")
+        return None
