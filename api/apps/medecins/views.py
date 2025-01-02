@@ -8,8 +8,31 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localdate
-from api.models import Patient, EHR, RadiologyAssessment, Consultation, Diagnostic, BiologicalAssessment, BiologyReport, LabTechnician, Doctor
+from api.models import Patient, EHR, Radiologist, RadiologyAssessment, Consultation, Diagnostic, BiologicalAssessment, BiologyReport, LabTechnician, Doctor,RadiologyAssessment, RadiologyReport, Radiologist
 from django.contrib.auth.models import User
+import jwt
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from api.models import BiologicalAssessment, Doctor
+from django.conf import settings
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from django.http import JsonResponse 
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+import json
+import jwt
+from django.conf import settings
+from api.models import EHR, Prescription, MedicalTreatment, Medecine, Doctor, Patient
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+import re
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
+
 
 
 
@@ -205,66 +228,6 @@ class ConsultationUpdateView(View):
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::CREATION DU BILAN ASSESMET ET SON DISPLAY:::::::::::::::::::::::::::::::::::::::
 
 
-import jwt
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from api.models import BiologicalAssessment, Doctor
-from django.conf import settings
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import User
-
-@method_decorator(csrf_exempt, name='dispatch')
-class DisplayBiologicalAssessmentView(View):
-    def authenticate_user(self, request):
-        # Extraire le token de la requête
-        token = request.headers.get("Authorization")
-        if not token:
-            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
-
-        try:
-            token = token.split(" ")[1]  # On suppose que le token est de type 'Bearer <token>'
-            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            return True, None
-        except jwt.ExpiredSignatureError:
-            return False, JsonResponse({"error": "Token has expired"}, status=401)
-        except jwt.InvalidTokenError:
-            return False, JsonResponse({"error": "Invalid token"}, status=401)
-
-    def get(self, request, ehr_id):
-        # Authentification de l'utilisateur
-        is_authenticated, error_response = self.authenticate_user(request)
-        if not is_authenticated:
-            return error_response
-
-        # Récupérer l'EHR du patient
-        ehr = get_object_or_404(EHR, id=ehr_id)
-
-        # Récupérer les évaluations biologiques associées à cet EHR
-        biological_assessments = BiologicalAssessment.objects.filter(ehr=ehr)
-
-        # Vérifier si des évaluations biologiques existent
-        if not biological_assessments:
-            return JsonResponse({"error": "No biological assessments found for this EHR ID"}, status=404)
-
-        # Structurer les données pour la réponse JSON
-        response_data = []
-        for assessment in biological_assessments:
-            response_data.append({
-                "date": assessment.date,
-                "patient_name": assessment.patient_name,
-                "date_of_birth": assessment.date_of_birth,
-                "age": assessment.age,
-                "gender": assessment.gender,
-                "tests_to_conduct": assessment.tests_to_conduct,
-                "doctor_name": f"{assessment.doctor.name} {assessment.doctor.surname}" if assessment.doctor else "Unknown Doctor",
-            })
-
-        return JsonResponse(response_data, safe=False, status=200)
-
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateBiologicalAssessmentView(View):
     def get_doctor_from_token(self, request):
@@ -326,6 +289,17 @@ class CreateBiologicalAssessmentView(View):
         if not tests_to_conduct:
             return JsonResponse({"error": "Missing 'tests_to_conduct' field"}, status=400)
 
+        # Créer un BiologyReport vide
+        biology_report = BiologyReport.objects.create(
+            bloodSugarLevel=0,  # Valeur par défaut pour le niveau de sucre dans le sang
+            bloodPressure=0,  # Valeur par défaut pour la pression artérielle
+            cholesterolLevel=0,  # Valeur par défaut pour le niveau de cholestérol
+            completeBloodCount=0 ,
+            doctor=doctor,  # Associe le rapport au médecin
+            ehr=ehr  # Lien avec l'EHR
+            
+        )
+
         # Créer l'évaluation biologique et l'associer au médecin et au patient via l'EHR
         biological_assessment = BiologicalAssessment.objects.create(
             date=datetime.now().strftime("%Y-%m-%d"),
@@ -335,79 +309,107 @@ class CreateBiologicalAssessmentView(View):
             gender=gender,
             tests_to_conduct=tests_to_conduct,
             ehr=ehr,
-            doctor=doctor  # Associer l'évaluation biologique au médecin
+            doctor=doctor,  # Associer l'évaluation biologique au médecin
+            biology_report=biology_report  # Lier l'évaluation au rapport biologique
         )
 
         return JsonResponse({
             'message': 'Biological assessment created successfully',
-            'assessment_id': biological_assessment.id
+            'assessment_id': biological_assessment.id,
+            'biology_report_id': biology_report.id
         })
-
-
-#:::::::::::::::::::::::::::::::::::::::::::CREATION RADIOLOGY ASSESMEENT ET SON DISPLAY::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 @method_decorator(csrf_exempt, name='dispatch')
-class CreateRadiologyAssessmentView(View):
-    def get_doctor_from_token(self, request):
+class DisplayBiologicalAssessmentView(View):
+    def authenticate_user(self, request):
         # Extraire le token de la requête
         token = request.headers.get("Authorization")
         if not token:
             return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
 
         try:
-            # Extraire le token Bearer
             token = token.split(" ")[1]  # On suppose que le token est de type 'Bearer <token>'
-            
-            # Décoder le token pour obtenir l'user_id et le rôle
-            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            return True, None
+        except jwt.ExpiredSignatureError:
+            return False, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return False, JsonResponse({"error": "Invalid token"}, status=401)
 
-            # Récupérer l'ID de l'utilisateur et le rôle du token
+    def get(self, request, ehr_id):
+        # Authentification de l'utilisateur
+        is_authenticated, error_response = self.authenticate_user(request)
+        if not is_authenticated:
+            return error_response
+
+        # Récupérer l'EHR du patient
+        ehr = get_object_or_404(EHR, id=ehr_id)
+
+        # Récupérer les évaluations biologiques associées à cet EHR
+        biological_assessments = BiologicalAssessment.objects.filter(ehr=ehr)
+
+        # Vérifier si des évaluations biologiques existent
+        if not biological_assessments:
+            return JsonResponse({"error": "No biological assessments found for this EHR ID"}, status=404)
+
+        # Structurer les données pour la réponse JSON
+        response_data = []
+        for assessment in biological_assessments:
+            response_data.append({
+                "date": assessment.date,
+                "patient_name": assessment.patient_name,
+                "date_of_birth": assessment.date_of_birth,
+                "age": assessment.age,
+                "gender": assessment.gender,
+                "tests_to_conduct": assessment.tests_to_conduct,
+                "doctor_name": f"{assessment.doctor.name} {assessment.doctor.surname}" if assessment.doctor else "Unknown Doctor",
+            })
+
+        return JsonResponse(response_data, safe=False, status=200)
+
+#:::::::::::::::::::::::::::::::::::::::::::CREATION RADIOLOGY ASSESMEENT ET SON DISPLAY::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateRadiologyAssessmentView(View):
+    def get_doctor_from_token(self, request):
+        """
+        Extrait le médecin à partir du token d'autorisation.
+        """
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+        try:
+            token = token.split(" ")[1]
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = decoded.get('user_id')
             role = decoded.get('role')
-
             if not user_id:
                 return None, JsonResponse({"error": "User ID not found in token"}, status=401)
-            
-            # Si le rôle est 'doctor', alors tu récupères le médecin
             if role != 'doctor':
                 return None, JsonResponse({"error": "Unauthorized role, not a doctor"}, status=403)
-
-            # Trouver le médecin associé à cet user_id
-            doctor = get_object_or_404(Doctor, id=user_id)  # Utilise 'id' pour trouver le médecin
-
+            doctor = get_object_or_404(Doctor, id=user_id)
             return doctor, None
-        
         except jwt.ExpiredSignatureError:
             return None, JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return None, JsonResponse({"error": "Invalid token"}, status=401)
 
     def post(self, request, ehr_id):
-        # Vérifier et récupérer le médecin à partir du token
         doctor, error_response = self.get_doctor_from_token(request)
         if error_response:
             return error_response
 
-        # Récupérer l'EHR du patient
         ehr = get_object_or_404(EHR, id=ehr_id)
-
-        # Extraire les informations du patient depuis l'EHR
         patient = ehr.patient
         patient_name = f"{patient.name} {patient.surname}"
         date_of_birth = patient.dateOfBirth.strftime("%Y-%m-%d")
         gender = patient.gender
         age = self.calculate_age(patient.dateOfBirth)
 
-        # Récupérer les données JSON envoyées pour l'évaluation radiologique
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
 
-        # Extraire le type d'imagerie
         imaging_type = data.get('imaging_type')
-
-        # Validation des champs requis
         if not imaging_type:
             return JsonResponse({"error": "Missing required field: imaging_type"}, status=400)
 
@@ -420,17 +422,34 @@ class CreateRadiologyAssessmentView(View):
             gender=gender,
             imaging_type=imaging_type,
             ehr=ehr,
-            doctor=doctor  # Lier le médecin à l'évaluation radiologique
+            doctor=doctor
         )
 
+        # Création d'un rapport radiologique vide lié à l'évaluation
+        radiology_report = RadiologyReport.objects.create(
+            Type="",
+            imageData=b"",  # Données binaires vides
+            date=datetime.now().strftime("%Y-%m-%d"),
+            description="",
+            doctor=doctor,
+            ehr=ehr
+        )
+
+        # Lier le rapport radiologique à l'évaluation
+        radiology_assessment.radiology_report = radiology_report
+        radiology_assessment.save()
+
         return JsonResponse({
-            'message': 'Radiology assessment created successfully',
-            'assessment_id': radiology_assessment.id
+            'message': 'Radiology assessment and empty report created successfully',
+            'assessment_id': radiology_assessment.id,
+            'report_id': radiology_report.id
         })
 
     def calculate_age(self, birth_date):
         today = datetime.today()
         return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class DisplayRadiologyAssessmentView(View):
     def authenticate_user(self, request):
@@ -463,7 +482,7 @@ class DisplayRadiologyAssessmentView(View):
         # Structurer les données pour la réponse JSON
         response_data = []
         for assessment in radiology_assessments:
-            response_data.append({
+            assessment_data = {
                 "id": assessment.id,
                 "date": assessment.date.strftime("%Y-%m-%d"),
                 "patient_name": assessment.patient_name,
@@ -472,16 +491,17 @@ class DisplayRadiologyAssessmentView(View):
                 "gender": assessment.gender,
                 "imaging_type": assessment.imaging_type,
                 "doctor_name": f"{assessment.doctor.name} {assessment.doctor.surname}" if assessment.doctor else "Unknown Doctor",
-            })
+                "has_radiology_report": assessment.radiology_report is not None  # Indication de la présence d'un rapport
+            }
+
+            response_data.append(assessment_data)
 
         # Retourner les données sous forme de JSON
         return JsonResponse(response_data, safe=False, status=200)
-    
 
 
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::REMPLIR LE BILAN ET SON DISPLAY::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 @method_decorator(csrf_exempt, name='dispatch')
 class FillBiologyReportView(View):
     def get_user_role_from_token(self, request):
@@ -492,27 +512,25 @@ class FillBiologyReportView(View):
         if not token:
             return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
         try:
-            token = token.split(" ")[1]  # En supposant que le token est un Bearer Token
+            token = token.split(" ")[1]  
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            role = decoded.get("role", "").strip().lower()  # Extraire et comparer le rôle en minuscules
+            role = decoded.get("role", "").strip().lower()  
             return role, None
         except jwt.ExpiredSignatureError:
             return None, JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return None, JsonResponse({"error": "Invalid token"}, status=401)
 
-    def post(self, request, ehr_id):
+    def post(self, request, assessment_id):
         # Vérifier le rôle de l'utilisateur
         role, error_response = self.get_user_role_from_token(request)
         if error_response:
             return error_response
 
-        print(f"User role extracted from token: {role}")  # Ligne de débogage
-
         if role != "labtechnician":
             return JsonResponse({"error": "You are not authorized to perform this action"}, status=403)
 
-        # Récupérer les données JSON envoyées
+        # Récupérer les données 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -528,40 +546,39 @@ class FillBiologyReportView(View):
         if not all([blood_sugar_level, blood_pressure, cholesterol_level, complete_blood_count]):
             return JsonResponse({"error": "All fields are required"}, status=400)
 
-        # Vérifier l'existence du Dossier Médical Électronique (EHR)
-        ehr = get_object_or_404(EHR, id=ehr_id)
+        # Récupérer l'évaluation biologique (BiologicalAssessment)
+        biological_assessment = get_object_or_404(BiologicalAssessment, id=assessment_id)
 
-        # Récupérer le médecin directement via le champ 'creator' de l'EHR
-        doctor = ehr.creator  # Le médecin qui a créé l'EHR
+        # Vérifier si un rapport biologique est déjà associé
+        biology_report = biological_assessment.biology_report
+        if not biology_report:
+            return JsonResponse({"error": "No biology report associated with this assessment"}, status=400)
 
-        if not doctor:
-            return JsonResponse({"error": "No doctor associated with this EHR"}, status=400)
+        # Vérifier si le rapport a déjà été rempli
+        if biology_report.bloodSugarLevel or biology_report.bloodPressure or biology_report.cholesterolLevel or biology_report.completeBloodCount:
+            return JsonResponse({"error": "This biology report has already been filled"}, status=400)
 
-        # Récupérer le technicien de laboratoire à partir du token ou du contexte
-        lab_technician = LabTechnician.objects.first()  # Vous pouvez aussi chercher par l'utilisateur connecté si nécessaire
+        # Récupérer le technicien de laboratoire
+        lab_technician = LabTechnician.objects.first()  # À adapter selon votre logique
 
-        # Créer un nouveau rapport biologique lié à l'EHR
-        report = BiologyReport.objects.create(
-            bloodSugarLevel=blood_sugar_level,
-            bloodPressure=blood_pressure,
-            cholesterolLevel=cholesterol_level,
-            completeBloodCount=complete_blood_count,
-            doctor=doctor,  # Le médecin extrait directement du champ 'creator' de l'EHR
-            lab_technician=lab_technician,  # Assurez-vous que le technicien est lié
-            ehr=ehr  # Lier le rapport à l'EHR du patient
-        )
+        # Mettre à jour les informations du rapport biologique
+        biology_report.bloodSugarLevel = blood_sugar_level
+        biology_report.bloodPressure = blood_pressure
+        biology_report.cholesterolLevel = cholesterol_level
+        biology_report.completeBloodCount = complete_blood_count
+        biology_report.lab_technician = lab_technician
+        biology_report.save()
 
         return JsonResponse({
-            'message': 'Biology report created successfully',
-            'report_id': report.id
+            'message': 'Biology report filled successfully',
+            'report_id': biology_report.id
         })
-
-
+    
 @method_decorator(csrf_exempt, name='dispatch')
 class DisplayBiologyReportsView(View):
-    def get_user_role_from_token(self, request):
+    def get_user_from_token(self, request):
         """
-        Extrait le rôle de l'utilisateur à partir du token d'autorisation.
+        Extraire l'ID de l'utilisateur à partir du token d'autorisation sans contrainte de rôle.
         """
         token = request.headers.get("Authorization")
         if not token:
@@ -569,60 +586,196 @@ class DisplayBiologyReportsView(View):
         try:
             token = token.split(" ")[1]  # En supposant que le token est un Bearer Token
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            role = decoded.get("role", "").strip().lower()  # Extraire et comparer le rôle en minuscules
-            return role, None
+            user_id = decoded.get('user_id')
+
+            if not user_id:
+                return None, JsonResponse({"error": "User ID not found in token"}, status=401)
+
+            return user_id, None
         except jwt.ExpiredSignatureError:
             return None, JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return None, JsonResponse({"error": "Invalid token"}, status=401)
 
-    def get(self, request, ehr_id):
-        # Vérifier le rôle de l'utilisateur
-        role, error_response = self.get_user_role_from_token(request)
+    def get(self, request, assessment_id):
+        # Vérifier l'utilisateur via le token (sans contrainte de rôle)
+        user_id, error_response = self.get_user_from_token(request)
         if error_response:
             return error_response
 
-        if role not in ["labtechnician", "doctor"]:  # Vous pouvez ajuster en fonction des rôles autorisés
-            return JsonResponse({"error": "You are not authorized to perform this action"}, status=403)
+        # Récupérer l'évaluation biologique avec l'ID
+        assessment = get_object_or_404(BiologicalAssessment, id=assessment_id)
 
-        # Récupérer l'EHR avec l'ID
-        ehr = get_object_or_404(EHR, id=ehr_id)
+        # Récupérer le rapport biologique associé à cette évaluation
+        biology_report = assessment.biology_report
 
-        # Récupérer tous les rapports biologiques associés à cet EHR
-        reports = BiologyReport.objects.filter(ehr=ehr)
-
-        if not reports.exists():
-            return JsonResponse({"error": "No biology reports found for this EHR"}, status=404)
+        if not biology_report:
+            return JsonResponse({"error": "No biology report found for this assessment"}, status=404)
 
         # Format des données à afficher
-        reports_data = []
-        for report in reports:
-            reports_data.append({
-                'id': report.id,
-                'bloodSugarLevel': report.bloodSugarLevel,
-                'bloodPressure': report.bloodPressure,
-                'cholesterolLevel': report.cholesterolLevel,
-                'completeBloodCount': report.completeBloodCount,
-                'doctor': report.doctor.name if report.doctor else None,
-                'labTechnician': report.lab_technician.name if report.lab_technician else None,
-            })
+        report_data = {
+            'id': biology_report.id,
+            'bloodSugarLevel': biology_report.bloodSugarLevel,
+            'bloodPressure': biology_report.bloodPressure,
+            'cholesterolLevel': biology_report.cholesterolLevel,
+            'completeBloodCount': biology_report.completeBloodCount,
+            'doctor': f"{biology_report.doctor.name} {biology_report.doctor.surname}" if biology_report.doctor else None,
+            'labTechnician': f"{biology_report.lab_technician.name} {biology_report.lab_technician.surname}" if biology_report.lab_technician else None,
+        }
 
         return JsonResponse({
-            'message': 'Biology reports retrieved successfully',
-            'reports': reports_data
+            'message': 'Biology report retrieved successfully',
+            'report': report_data
         })
-from django.http import JsonResponse 
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
-import json
-import jwt
-from django.conf import settings
-from api.models import EHR, Prescription, MedicalTreatment, Medecine, Doctor, Patient
-from django.shortcuts import get_object_or_404
-from django.db import transaction
-import re
-from datetime import datetime
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::RMPLIR LE BILAN RADIOLOGIQUE ET L AFFICHER:::::::::::::::::::::::::::::
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FillRadiologyReportView(View):
+    def get_radiologist_from_token(self, request):
+        """
+        Extraire et vérifier le rôle de l'utilisateur à partir du token d'autorisation.
+        """
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            token = token.split(" ")[1]  # On suppose un Bearer Token
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded.get('user_id')
+            role = decoded.get('role')
+
+            if not user_id:
+                return None, JsonResponse({"error": "User ID not found in token"}, status=401)
+
+            if role != 'Radiologist':
+                return None, JsonResponse({"error": "Unauthorized role, not a radiologist"}, status=403)
+
+            radiologist = get_object_or_404(Radiologist, id=user_id)
+            return radiologist, None
+        
+        except jwt.ExpiredSignatureError:
+            return None, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return None, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def post(self, request, assessment_id):
+        # Vérifier si l'utilisateur est un radiologue
+        radiologist, error_response = self.get_radiologist_from_token(request)
+        if error_response:
+            return error_response
+
+        # Récupérer l'évaluation radiologique par ID
+        assessment = get_object_or_404(RadiologyAssessment, id=assessment_id)
+
+        # Vérifier si un rapport radiologique est déjà associé à cette évaluation
+        if not assessment.radiology_report:
+            return JsonResponse({"error": "No radiology report associated with this assessment"}, status=400)
+
+        # Récupérer le rapport radiologique existant
+        radiology_report = assessment.radiology_report
+
+        # Extraire les données envoyées pour remplir le rapport
+        date_of_image = request.POST.get('date_of_image')
+        description = request.POST.get('description')
+        image_data = request.FILES.get('image_data')  # Fichier image envoyé via 'FILES'
+
+        # Validation des champs requis
+        if not all([date_of_image, description, image_data]):
+            return JsonResponse({"error": "Missing required fields: date_of_image, description, or image_data"}, status=400)
+
+        # Mettre à jour le rapport radiologique existant
+        radiology_report.date = date_of_image
+        radiology_report.description = description
+        radiology_report.radiologist = radiologist  # Le radiologue remplissant le rapport
+
+        # Sauvegarder l'image dans le champ 'imageData'
+        radiology_report.imageData = image_data  # L'image est enregistrée via 'FILES'
+        
+        # Sauvegarder les modifications
+        radiology_report.save()
+
+        return JsonResponse({
+            'message': 'Radiology report updated successfully',
+            'report_id': radiology_report.id
+        })
+import base64
+from io import BytesIO
+from PIL import Image
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DisplayRadiologyReportView(View):
+    def get_user_from_token(self, request):
+        """
+        Extraire l'ID de l'utilisateur à partir du token d'autorisation sans contrainte de rôle.
+        """
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            token = token.split(" ")[1]  # On suppose un Bearer Token
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded.get('user_id')
+
+            if not user_id:
+                return None, JsonResponse({"error": "User ID not found in token"}, status=401)
+
+            return user_id, None
+        
+        except jwt.ExpiredSignatureError:
+            return None, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return None, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def image_to_base64(self, image):
+        """
+        Convertir l'image en base64 pour l'inclure dans la réponse.
+        """
+        if not image:
+            return None
+        image_file = BytesIO()
+        img = Image.open(image)
+        img.save(image_file, format='PNG')  # Ou le format de votre image
+        image_file.seek(0)
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+    def get(self, request, assessment_id):
+        # Vérifier l'utilisateur via le token (sans contrainte de rôle)
+        user_id , error_response = self.get_user_from_token(request)
+        if error_response:
+            return error_response
+
+        # Récupérer l'évaluation radiologique par ID
+        assessment = get_object_or_404(RadiologyAssessment, id=assessment_id)
+
+        # Vérifier si un rapport radiologique est associé à cette évaluation
+        if not assessment.radiology_report:
+            return JsonResponse({"error": "No radiology report associated with this assessment"}, status=400)
+
+        # Récupérer le rapport radiologique existant
+        radiology_report = assessment.radiology_report
+
+        # Convertir l'image en base64 si elle existe
+        image_data = self.image_to_base64(radiology_report.imageData) if radiology_report.imageData else None
+
+        # Retourner les informations du rapport radiologique
+        return JsonResponse({
+            "report_id": radiology_report.id,
+            "date_of_image": radiology_report.date,
+            "description": radiology_report.description,
+            "image_data": image_data,  # Ou vous pouvez renvoyer l'URL de l'image ici si vous ne souhaitez pas envoyer du base64
+            "radiologist": radiology_report.radiologist.name,  # Exemple pour ajouter le nom du radiologue
+        })
+
+
+
+
+
+
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CreatePrescriptionView(View):
@@ -673,7 +826,7 @@ class CreatePrescriptionView(View):
             # Ensure EHR is linked to a patient
             patient = Patient.objects.get(ehr=ehr)
 
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist: 
             return JsonResponse({"error": "EHR or Patient not found"}, status=404)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
