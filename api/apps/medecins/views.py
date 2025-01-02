@@ -627,7 +627,7 @@ class DisplayBiologyReportsView(View):
             'message': 'Biology report retrieved successfully',
             'report': report_data
         })
-<<<<<<< HEAD
+
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::RMPLIR LE BILAN RADIOLOGIQUE ET L AFFICHER:::::::::::::::::::::::::::::
 
@@ -777,7 +777,7 @@ class DisplayRadiologyReportView(View):
 
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-=======
+
 from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -792,7 +792,6 @@ import re
 from datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
 
->>>>>>> 887b29784c78c6ed9f58cf3ad39a6389d5f8ce39
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CreatePrescriptionView(View):
