@@ -275,7 +275,7 @@ class Radiologist(models.Model):
 class RadiologyReport(models.Model):
     id = models.AutoField(primary_key=True)
     Type = models.CharField(max_length=45)
-    imageData = models.BinaryField()
+    imageData = models.ImageField(upload_to='radiology_reports/', null=True, blank=True)
     date = models.DateField()
     description = models.TextField()
     
@@ -291,7 +291,7 @@ class RadiologyReport(models.Model):
         Radiologist,  # Linking to the Radiologist model
         on_delete=models.CASCADE,  # If the Radiologist is deleted, delete the related RadiologyReports
         related_name='radiology_reports',  # Allows accessing all RadiologyReports for a Radiologist
-        null=False,  # Allows RadiologyReport to exist without a Radiologist initially
+        null=True,  # Allows RadiologyReport to exist without a Radiologist initially
         blank=True  # Optional: if not all RadiologyReports have a Radiologist linked initially
     )
    # Link to the EHR model
