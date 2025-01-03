@@ -70,7 +70,7 @@ class SignUpView(APIView):
 
         
         # Check if patient with email already exists
-        existing_user = Patient.objects.filter(email=email).first()
+        existing_user = Model.objects.filter(email=email).first()
         if existing_user:
             return Response({'message': 'Email already in use.'}, status=status.HTTP_400_BAD_REQUEST)
         
