@@ -60,14 +60,13 @@ class SignUpView(APIView):
                 return Response({'message': 'An account with this NSS already exists.'}, status=status.HTTP_400_BAD_REQUEST)
             
 
-        # Validate email
-        # email_validation = self.validate_email(email)
-        # if email_validation == 'disposable':
-        #     return Response({'message': 'Temporary email addresses are not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
-        # elif email_validation == 'risky':
-        #     return Response({'message': 'The email address does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-        # elif email_validation == 'invalid':
-        #     return Response({'message': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+        email_validation = self.validate_email(email)
+        if email_validation == 'disposable':
+            return Response({'message': 'Temporary email addresses are not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+        elif email_validation == 'risky':
+            return Response({'message': 'The email address does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        elif email_validation == 'invalid':
+            return Response({'message': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
 
         
         # Check if patient with email already exists

@@ -134,28 +134,6 @@ class LabTechnician(models.Model):
 
 
 
-#Biology report model 
-class BiologyReport(models.Model):
-    id = models.AutoField(primary_key=True)
-    bloodSugarLevel = models.FloatField()
-    bloodPressure = models.FloatField()
-    chelesterolLevel = models.FloatField()
-    completeBloodCount = models.FloatField()
-    doctor = models.ForeignKey(
-        Doctor,
-        on_delete=models.CASCADE,  # If the doctor is deleted, all their biology reports are deleted
-        related_name='biology_reports',  # Allows you to access a doctor's biology reports
-        null=False,  
-        blank=True  
-    )
-
-    lab_technician = models.ForeignKey(
-        LabTechnician,  # Linking to the LabTechnician model
-        on_delete=models.CASCADE,  # If the LabTechnician is deleted, delete the related BiologyReports
-        related_name='biology_reports',  # Allows accessing all BiologyReports for a LabTechnician
-        null=False,  
-        blank=True  # Optional: if not all BiologyReports have a LabTechnician linked initially
-    )
 #Diagnostic Model
 class Diagnostic(models.Model):
     id = models.AutoField(primary_key=True)
@@ -305,37 +283,36 @@ class RadiologyReport(models.Model):
         blank=True  # Optional: if not all RadiologyReports have an EHR linked initially
     )
 
-# Biology Report model 
-# class BiologyReport(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     bloodSugarLevel = models.FloatField()
-#     bloodPressure = models.FloatField()
-#     cholesterolLevel = models.FloatField()
-#     completeBloodCount = models.FloatField()
-#     doctor = models.ForeignKey(
-#         'Doctor',
-#         on_delete=models.CASCADE,
-#         related_name='biology_reports'
-#     )
-#     lab_technician = models.ForeignKey(
-#         'LabTechnician',
-#         on_delete=models.CASCADE,
-#         related_name='biology_reports',
-#         null=True,  # Make lab_technician optional
-#         blank=True  # Make lab_technician optional in forms
-#     )
-#     # Link to the EHR model
-#     ehr = models.ForeignKey(
-#         'EHR',
-#         on_delete=models.CASCADE,
-#         related_name='biology_reports',
-#         null=True,  # Optional: if not all BiologyReports have an EHR linked
-#         blank=True  # Optional: if not all BiologyReports have an EHR linked initially
-#     )
-#     date = models.DateField(auto_now_add=True)  # Set the date to the current date by default
+class BiologyReport(models.Model):
+    id = models.AutoField(primary_key=True)
+    bloodSugarLevel = models.FloatField()
+    bloodPressure = models.FloatField()
+    cholesterolLevel = models.FloatField()
+    completeBloodCount = models.FloatField()
+    doctor = models.ForeignKey(
+        'Doctor',
+        on_delete=models.CASCADE,
+        related_name='biology_reports'
+    )
+    lab_technician = models.ForeignKey(
+        'LabTechnician',
+        on_delete=models.CASCADE,
+        related_name='biology_reports',
+        null=True,  # Make lab_technician optional
+        blank=True  # Make lab_technician optional in forms
+    )
+    # Link to the EHR model
+    ehr = models.ForeignKey(
+        'EHR',
+        on_delete=models.CASCADE,
+        related_name='biology_reports',
+        null=True,  # Optional: if not all BiologyReports have an EHR linked
+        blank=True  # Optional: if not all BiologyReports have an EHR linked initially
+    )
+    date = models.DateField(auto_now_add=True)  # Set the date to the current date by default
 
-#     def __str__(self):
-#         return f"Biology Report {self.id} - {self.date}"
+    def __str__(self):
+        return f"Biology Report {self.id} - {self.date}"
 
 # CareProvided model
 class CareProvided(models.Model):
