@@ -121,6 +121,7 @@ class SignInView(View):
 
         role = data.get('role')
         Model = getModel(role.capitalize())
+        
         if not Model:
             return JsonResponse({'message': 'Role does not exist'}, status=400)        
         

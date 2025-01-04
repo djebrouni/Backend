@@ -782,6 +782,142 @@ class DisplayRadiologyReportView(View):
             "radiologist": radiology_report.radiologist.name,  # Exemple pour ajouter le nom du radiologue
         })
 
+#::::::::::::::::::::::::Consulter les rapport via NSS::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+@method_decorator(csrf_exempt, name='dispatch')
+class ConsultBiologyReportsView(View):
+    def get_user_from_token(self, request):
+        """
+        Extraire l'ID de l'utilisateur à partir du token d'autorisation.
+        """
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            token = token.split(" ")[1]
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded.get('user_id')
+            if not user_id:
+                return None, JsonResponse({"error": "User ID not found in token"}, status=401)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return None, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def get(self, request):
+        # Récupérer le NSS depuis le JSON du body
+        body = json.loads(request.body)
+        nss = body.get('NSS')
+
+        if not nss:
+            return JsonResponse({"error": "NSS is required"}, status=400)
+
+        # Vérifier si le patient existe
+        try:
+            patient = Patient.objects.get(NSS=nss)
+        except Patient.DoesNotExist:
+            return JsonResponse({"error": "Patient not found"}, status=404)
+
+        # Récupérer tous les rapports biologiques associés à ce patient
+        biology_reports = BiologicalAssessment.objects.filter(ehr=patient.ehr).select_related('biology_report')
+ 
+        if not biology_reports.exists():
+            return JsonResponse({"error": "No biology reports found for this patient"}, status=404)
+
+        # Préparer les données
+        reports_data = []
+        for assessment in biology_reports:
+            if assessment.biology_report:
+                reports_data.append({
+                    'id': assessment.biology_report.id,
+                    'bloodSugarLevel': assessment.biology_report.bloodSugarLevel,
+                    'bloodPressure': assessment.biology_report.bloodPressure,
+                    'cholesterolLevel': assessment.biology_report.cholesterolLevel,
+                    'completeBloodCount': assessment.biology_report.completeBloodCount,
+                })
+
+        return JsonResponse({
+            'message': 'Biology reports retrieved successfully',
+            'reports': reports_data
+        })
+from io import BytesIO
+import base64
+from PIL import Image
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ConsultRadiologyReportsView(View):
+    def get_user_from_token(self, request):
+        """
+        Extraire l'ID de l'utilisateur à partir du token d'autorisation.
+        """
+        token = request.headers.get("Authorization")
+        if not token:
+            return None, JsonResponse({"error": "Authorization token is missing"}, status=401)
+
+        try:
+            token = token.split(" ")[1]
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded.get('user_id')
+            if not user_id:
+                return None, JsonResponse({"error": "User ID not found in token"}, status=401)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return None, JsonResponse({"error": "Invalid token"}, status=401)
+
+    def image_to_base64(self, image_field):
+        """
+        Convertir une image en base64.
+        """
+        if not image_field:
+            return None
+        image_file = BytesIO(image_field.read())
+        image = Image.open(image_file)
+        image_file = BytesIO()
+        image.save(image_file, format="PNG")  # Convertir en PNG ou tout autre format compatible
+        image_file.seek(0)
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+    def get(self, request):
+        # Récupérer le NSS depuis le JSON du body
+        body = json.loads(request.body)
+        nss = body.get('NSS')
+
+        if not nss:
+            return JsonResponse({"error": "NSS is required"}, status=400)
+
+        # Vérifier si le patient existe
+        try:
+            patient = Patient.objects.get(NSS=nss)
+        except Patient.DoesNotExist:
+            return JsonResponse({"error": "Patient not found"}, status=404)
+
+        # Récupérer tous les rapports radiologiques associés à ce patient
+        radiology_reports = RadiologyAssessment.objects.filter(ehr=patient.ehr).select_related('radiology_report')
+
+        if not radiology_reports.exists():
+            return JsonResponse({"error": "No radiology reports found for this patient"}, status=404)
+
+        # Préparer les données
+        reports_data = []
+        for assessment in radiology_reports:
+            if assessment.radiology_report:
+                image_base64 = self.image_to_base64(assessment.radiology_report.imageData) if assessment.radiology_report.imageData else None
+                reports_data.append({
+                    'id': assessment.radiology_report.id,
+                    'imaging_type': assessment.radiology_report.Type,
+                    'description': assessment.radiology_report.description,
+                    'date_of_image': assessment.radiology_report.date,
+                    'radiologist': assessment.radiology_report.radiologist.name if assessment.radiology_report.radiologist else None,
+                    'image_base64': image_base64,  # Ajouter les données de l'image en base64
+                })
+
+        return JsonResponse({
+            'message': 'Radiology reports retrieved successfully',
+            'reports': reports_data
+        })
 
 
 

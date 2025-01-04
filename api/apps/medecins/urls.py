@@ -3,7 +3,7 @@
 
 from .views import CreatePrescriptionView, DisplayRadiologyReportView, FillRadiologyReportView, rechercheDpiParNss
 from django.urls import path
-from .views import ConsultationCreateView, ConsultationUpdateView ,ConsultationSummaryView,CreateBiologicalAssessmentView,DisplayBiologicalAssessmentView,DisplayRadiologyAssessmentView,CreateRadiologyAssessmentView,FillBiologyReportView,DisplayBiologyReportsView
+from .views import ConsultationCreateView, ConsultationUpdateView ,ConsultationSummaryView,CreateBiologicalAssessmentView,DisplayBiologicalAssessmentView,DisplayRadiologyAssessmentView,CreateRadiologyAssessmentView,FillBiologyReportView,DisplayBiologyReportsView,ConsultBiologyReportsView,ConsultRadiologyReportsView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,6 +31,9 @@ urlpatterns = [
    #remplisssage des resultats et affichage des resultats radio
     path('display-radiology-report/<int:assessment_id>/', DisplayRadiologyReportView.as_view(), name='display_radiology_report'),
     path('fill-radiology-report/<int:assessment_id>/', FillRadiologyReportView.as_view(), name='fill_radiology_report'),
+    #affichage via NSS des resultats radio et bilogique
+    path('biology-reports/', ConsultBiologyReportsView.as_view(), name='all_biology_reports'),
+    path('radiology-reports/', ConsultRadiologyReportsView.as_view(), name='all_radiology_reports'),
     #creation prescription
      path('prescriptions/create/', CreatePrescriptionView.as_view(), name='create_prescription'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
