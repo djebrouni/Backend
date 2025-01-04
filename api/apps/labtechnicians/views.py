@@ -22,8 +22,8 @@ def generate_trend_graph(request):
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()  # Normalize role
 
-        # Validate role
-        if role != "labtechnician":
+        valid_roles = ['doctor', 'labtechnician']
+        if role not in valid_roles:
             return JsonResponse({"error": "Unauthorized role"}, status=403)
 
     except jwt.ExpiredSignatureError:
@@ -101,8 +101,8 @@ def generate_blood_pressure_trend(request):
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()  # Normalize role
 
-        # Validate role
-        if role != "labtechnician":
+        valid_roles = ['doctor', 'labtechnician']
+        if role not in valid_roles:
             return JsonResponse({"error": "Unauthorized role"}, status=403)
 
     except jwt.ExpiredSignatureError:
@@ -180,10 +180,10 @@ def generate_cholesterol_level_trend(request):
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()  # Normalize role
 
-        # Validate role
-        if role != "labtechnician":
+        valid_roles = ['doctor', 'labtechnician']
+        if role not in valid_roles:
             return JsonResponse({"error": "Unauthorized role"}, status=403)
-
+        
     except jwt.ExpiredSignatureError:
         return JsonResponse({"error": "Token has expired"}, status=401)
     except jwt.InvalidTokenError:
@@ -261,10 +261,10 @@ def generate_blood_sugar_trend(request):
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()  # Normalize role
 
-        # Validate role
-        if role != "labtechnician":
+        valid_roles = ['doctor', 'labtechnician']
+        if role not in valid_roles:
             return JsonResponse({"error": "Unauthorized role"}, status=403)
-
+        
     except jwt.ExpiredSignatureError:
         return JsonResponse({"error": "Token has expired"}, status=401)
     except jwt.InvalidTokenError:
@@ -340,7 +340,8 @@ def generate_complete_blood_count_trend(request):
         decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         role = decoded.get("role", "").strip().lower()
 
-        if role != "labtechnician":
+        valid_roles = ['doctor', 'labtechnician']
+        if role not in valid_roles:
             return JsonResponse({"error": "Unauthorized role"}, status=403)
 
     except jwt.ExpiredSignatureError:
