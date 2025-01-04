@@ -33,9 +33,6 @@ import re
 from datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
 
-
-
-
 def rechercheDpiParNss(request):
     # Ensure the method is GET
     if request.method != 'GET':
@@ -63,31 +60,46 @@ def rechercheDpiParNss(request):
     except jwt.InvalidTokenError:
         return JsonResponse({"error": "Invalid token"}, status=401)
 
-    
-
     try:
-
         # Parse JSON input
         data = json.loads(request.body.decode('utf-8'))
         nss = data.get('nss')
 
-        if not nss:
-            return JsonResponse({"error": "Missing 'nss' parameter"}, status=400)
-        # Search for the patient using NSS
-        patient = Patient.objects.get(NSS=nss)
-        ehr = EHR.objects.get(patient=patient)
+        if nss:
+            # If NSS is provided, search for the patient using NSS
+            try:
+                patient = Patient.objects.get(NSS=nss)
+                ehr = EHR.objects.get(patient=patient)
+                return JsonResponse({
+                    'ehr_id': ehr.id,
+                    'name': patient.name,
+                    'surname': patient.surname,
+                    'nss': patient.NSS
+                })
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'Patient not found for NSS: ' + str(nss)}, status=404)
+            except EHR.DoesNotExist:
+                return JsonResponse({'error': 'EHR not found for patient with NSS: ' + str(nss)}, status=404)
 
-        # Return the EHR ID and patient details
-        return JsonResponse({
-            'ehr_id': ehr.id,
-            'name': patient.name,
-            'surname': patient.surname,
-            'nss': patient.NSS
-        })
-    except Patient.DoesNotExist:
-        return JsonResponse({'error': 'Patient not found'}, status=404)
-    except EHR.DoesNotExist:
-        return JsonResponse({'error': 'EHR not found for this patient'}, status=404)
+        else:
+            # If NSS is not provided (it's null), search for all EHR records
+            ehr_records = EHR.objects.all()
+            patients_data = []
+
+            for ehr_record in ehr_records:
+                try:
+                    patient = Patient.objects.get(ehr=ehr_record)
+                    patients_data.append({
+                        'nss': patient.NSS,
+                        'name': patient.name,
+                        'surname': patient.surname
+                    })
+                except Patient.DoesNotExist:
+                    # If patient is not found for an EHR, skip it
+                    continue
+
+            return JsonResponse({'patients': patients_data})
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
