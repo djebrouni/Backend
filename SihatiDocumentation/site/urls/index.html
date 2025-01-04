@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>URLs - DPI Gestion</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">DPI Gestion</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../installations/" class="nav-link">Installation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">URLs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../models/" class="nav-link">Models</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../installations/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../models/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#fichier-des-urls-du-projet-dpi-gestion" class="nav-link">Fichier des URLs du Projet DPI Gestion</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-routes-principales" class="nav-link">1. Routes Principales</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-validation-de-prescription-et-liste-des-prescriptions" class="nav-link">2. Validation de Prescription et Liste des Prescriptions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-gestion-des-patients" class="nav-link">3. Gestion des Patients</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-consultation-medicale" class="nav-link">4. Consultation Médicale</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-bilan-biologique-et-radiologique" class="nav-link">5. Bilan Biologique et Radiologique</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-recherche-et-affichage-des-rapports" class="nav-link">6. Recherche et Affichage des Rapports</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-creation-de-prescriptions" class="nav-link">7. Création de Prescriptions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8-gestion-des-soins" class="nav-link">8. Gestion des Soins</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9-enregistrements-medicaux" class="nav-link">9. Enregistrements Médicaux</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#10-authentification-et-inscription" class="nav-link">10. Authentification et Inscription</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#11-tendances-medicales" class="nav-link">11. Tendances Médicales</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="fichier-des-urls-du-projet-dpi-gestion">Fichier des URLs du Projet DPI Gestion</h1>
+<h2 id="1-routes-principales">1. Routes Principales</h2>
+<h3 id="application-utilisateurs-users"><strong>Application Utilisateurs (<code>users</code>)</strong></h3>
+<ul>
+<li><code>/</code> : Inclus les URLs de l'application utilisateurs.</li>
+</ul>
+<h3 id="application-authentification-auth"><strong>Application Authentification (<code>auth</code>)</strong></h3>
+<ul>
+<li><code>/auth/</code> : Inclus les URLs de l'application authentification.</li>
+</ul>
+<h3 id="application-medecins-medecins"><strong>Application Médecins (<code>medecins</code>)</strong></h3>
+<ul>
+<li><code>/medecins/</code> : Inclus les URLs de l'application médecins.</li>
+</ul>
+<h3 id="application-patients-patients"><strong>Application Patients (<code>patients</code>)</strong></h3>
+<ul>
+<li><code>/patients/</code> : Inclus les URLs de l'application patients.</li>
+</ul>
+<h3 id="application-infirmiers-infermier"><strong>Application Infirmiers (<code>infermier</code>)</strong></h3>
+<ul>
+<li><code>/infermier/</code> : Inclus les URLs de l'application infirmiers.</li>
+</ul>
+<h3 id="application-techniciens-de-laboratoire-labtechnicians"><strong>Application Techniciens de Laboratoire (<code>labtechnicians</code>)</strong></h3>
+<ul>
+<li><code>/labtechnicians/</code> : Inclus les URLs de l'application techniciens de laboratoire.</li>
+</ul>
+<h3 id="application-recherche-get"><strong>Application Recherche (<code>get</code>)</strong></h3>
+<ul>
+<li><code>/get/</code> : Inclus les URLs de l'application recherche.</li>
+</ul>
+<h3 id="application-systeme-de-gestion-de-prescription-sgph"><strong>Application Système de Gestion de Prescription (<code>sgph</code>)</strong></h3>
+<ul>
+<li><code>/sgph/</code> : Inclus les URLs de l'application SGPH.</li>
+</ul>
+<h2 id="2-validation-de-prescription-et-liste-des-prescriptions">2. Validation de Prescription et Liste des Prescriptions</h2>
+<h3 id="validation-des-prescriptions"><strong>Validation des prescriptions</strong></h3>
+<ul>
+<li><code>/validate-prescription/</code> : <code>POST</code> pour valider une prescription.</li>
+</ul>
+<h3 id="liste-des-prescriptions"><strong>Liste des prescriptions</strong></h3>
+<ul>
+<li><code>/list-prescriptions/</code> : <code>GET</code> pour afficher la liste des prescriptions.</li>
+</ul>
+<h2 id="3-gestion-des-patients">3. Gestion des Patients</h2>
+<h3 id="creer-un-patient-dpi"><strong>Créer un patient DPI</strong></h3>
+<ul>
+<li><code>/create_patient_dpi/</code> : <code>POST</code> pour créer un patient DPI.</li>
+</ul>
+<h3 id="consulter-un-patient-dpi"><strong>Consulter un patient DPI</strong></h3>
+<ul>
+<li><code>/consultation-dpi/</code> : <code>GET</code> pour consulter les données DPI d'un patient.</li>
+</ul>
+<h3 id="mettre-a-jour-le-profil-utilisateur"><strong>Mettre à jour le profil utilisateur</strong></h3>
+<ul>
+<li><code>/update-profile/</code> : <code>PUT</code> pour mettre à jour le profil de l'utilisateur.</li>
+</ul>
+<h3 id="afficher-le-profil-utilisateur"><strong>Afficher le profil utilisateur</strong></h3>
+<ul>
+<li><code>/profile/</code> : <code>GET</code> pour afficher les informations du profil de l'utilisateur.</li>
+</ul>
+<h2 id="4-consultation-medicale">4. Consultation Médicale</h2>
+<h3 id="creer-une-consultation"><strong>Créer une consultation</strong></h3>
+<ul>
+<li><code>/consultation/create/</code> : <code>POST</code> pour créer une consultation.</li>
+</ul>
+<h3 id="mettre-a-jour-une-consultation"><strong>Mettre à jour une consultation</strong></h3>
+<ul>
+<li><code>/consultation/update/&lt;int:consultation_id&gt;/</code> : <code>PUT</code> pour mettre à jour une consultation existante.</li>
+</ul>
+<h3 id="afficher-le-resume-dune-consultation"><strong>Afficher le résumé d'une consultation</strong></h3>
+<ul>
+<li><code>/consultation/summary/&lt;int:consultation_id&gt;/</code> : <code>GET</code> pour afficher le résumé d'une consultation.</li>
+</ul>
+<h2 id="5-bilan-biologique-et-radiologique">5. Bilan Biologique et Radiologique</h2>
+<h3 id="creer-un-bilan-biologique"><strong>Créer un bilan biologique</strong></h3>
+<ul>
+<li><code>/create_biological_assessment/&lt;int:ehr_id&gt;/</code> : <code>POST</code> pour créer un bilan biologique.</li>
+</ul>
+<h3 id="afficher-un-bilan-biologique"><strong>Afficher un bilan biologique</strong></h3>
+<ul>
+<li><code>/view_biological_assessment/&lt;int:ehr_id&gt;/</code> : <code>GET</code> pour afficher les résultats d'un bilan biologique.</li>
+</ul>
+<h3 id="remplir-un-rapport-biologique"><strong>Remplir un rapport biologique</strong></h3>
+<ul>
+<li><code>/biological_assessment/fill_report/&lt;int:assessment_id&gt;/</code> : <code>POST</code> pour remplir un rapport biologique.</li>
+</ul>
+<h3 id="afficher-un-rapport-biologique"><strong>Afficher un rapport biologique</strong></h3>
+<ul>
+<li><code>/biological_assessment/display_report/&lt;int:assessment_id&gt;/</code> : <code>GET</code> pour afficher un rapport biologique.</li>
+</ul>
+<h3 id="creer-un-bilan-radiologique"><strong>Créer un bilan radiologique</strong></h3>
+<ul>
+<li><code>/create_radiology_assessment/&lt;int:ehr_id&gt;/</code> : <code>POST</code> pour créer un bilan radiologique.</li>
+</ul>
+<h3 id="afficher-un-bilan-radiologique"><strong>Afficher un bilan radiologique</strong></h3>
+<ul>
+<li><code>/display_radiology_assessment/&lt;int:ehr_id&gt;/</code> : <code>GET</code> pour afficher les résultats d'un bilan radiologique.</li>
+</ul>
+<h3 id="remplir-un-rapport-radiologique"><strong>Remplir un rapport radiologique</strong></h3>
+<ul>
+<li><code>/fill-radiology-report/&lt;int:assessment_id&gt;/</code> : <code>POST</code> pour remplir un rapport radiologique.</li>
+</ul>
+<h3 id="afficher-un-rapport-radiologique"><strong>Afficher un rapport radiologique</strong></h3>
+<ul>
+<li><code>/display-radiology-report/&lt;int:assessment_id&gt;/</code> : <code>GET</code> pour afficher un rapport radiologique.</li>
+</ul>
+<h2 id="6-recherche-et-affichage-des-rapports">6. Recherche et Affichage des Rapports</h2>
+<h3 id="afficher-les-rapports-biologiques"><strong>Afficher les rapports biologiques</strong></h3>
+<ul>
+<li><code>/biology-reports/</code> : <code>GET</code> pour consulter tous les rapports biologiques.</li>
+</ul>
+<h3 id="afficher-les-rapports-radiologiques"><strong>Afficher les rapports radiologiques</strong></h3>
+<ul>
+<li><code>/radiology-reports/</code> : <code>GET</code> pour consulter tous les rapports radiologiques.</li>
+</ul>
+<h3 id="rechercher-un-patient-par-nss"><strong>Rechercher un patient par NSS</strong></h3>
+<ul>
+<li><code>/search-patient/</code> : <code>GET</code> pour rechercher un patient par son numéro de sécurité sociale.</li>
+</ul>
+<h2 id="7-creation-de-prescriptions">7. Création de Prescriptions</h2>
+<h3 id="creer-une-prescription"><strong>Créer une prescription</strong></h3>
+<ul>
+<li><code>/prescriptions/create/</code> : <code>POST</code> pour créer une prescription.</li>
+</ul>
+<h2 id="8-gestion-des-soins">8. Gestion des Soins</h2>
+<h3 id="creer-un-soin-fourni"><strong>Créer un soin fourni</strong></h3>
+<ul>
+<li><code>/careprovided/create/</code> : <code>POST</code> pour créer un soin fourni.</li>
+</ul>
+<h3 id="afficher-un-soin-fourni"><strong>Afficher un soin fourni</strong></h3>
+<ul>
+<li><code>/careprovided/&lt;int:care_provided_id&gt;/</code> : <code>GET</code> pour afficher les détails d'un soin fourni.</li>
+</ul>
+<h3 id="mettre-a-jour-un-soin-fourni"><strong>Mettre à jour un soin fourni</strong></h3>
+<ul>
+<li><code>/careprovided/update/&lt;int:care_provided_id&gt;/</code> : <code>PUT</code> pour mettre à jour un soin fourni.</li>
+</ul>
+<h2 id="9-enregistrements-medicaux">9. Enregistrements Médicaux</h2>
+<h3 id="afficher-les-dossiers-hospitaliers"><strong>Afficher les dossiers hospitaliers</strong></h3>
+<ul>
+<li><code>/hospital-records/</code> : <code>GET</code> pour afficher les dossiers hospitaliers.</li>
+</ul>
+<h3 id="afficher-les-dossiers-des-medecins"><strong>Afficher les dossiers des médecins</strong></h3>
+<ul>
+<li><code>/doctor-records/</code> : <code>GET</code> pour afficher les dossiers des médecins.</li>
+</ul>
+<h3 id="afficher-les-details-dune-prescription"><strong>Afficher les détails d'une prescription</strong></h3>
+<ul>
+<li><code>/prescription/&lt;int:prescription_id&gt;/</code> : <code>GET</code> pour afficher les détails d'une prescription.</li>
+</ul>
+<h3 id="afficher-les-details-dun-soin-fourni"><strong>Afficher les détails d'un soin fourni</strong></h3>
+<ul>
+<li><code>/careprovided/&lt;int:care_id&gt;/</code> : <code>GET</code> pour afficher les détails d'un soin fourni.</li>
+</ul>
+<h2 id="10-authentification-et-inscription">10. Authentification et Inscription</h2>
+<h3 id="se-connecter"><strong>Se connecter</strong></h3>
+<ul>
+<li><code>/signin</code> : <code>POST</code> pour la connexion d'un utilisateur.</li>
+</ul>
+<h3 id="sinscrire"><strong>S'inscrire</strong></h3>
+<ul>
+<li><code>/signup</code> : <code>POST</code> pour l'inscription d'un nouvel utilisateur.</li>
+</ul>
+<h2 id="11-tendances-medicales">11. Tendances Médicales</h2>
+<h3 id="generer-les-tendances-de-la-glycemie"><strong>Générer les tendances de la glycémie</strong></h3>
+<ul>
+<li><code>/generate_blood_sugar_trend/</code> : <code>GET</code> pour générer les tendances de la glycémie.</li>
+</ul>
+<h3 id="generer-les-tendances-de-la-pression-arterielle"><strong>Générer les tendances de la pression artérielle</strong></h3>
+<ul>
+<li><code>/generate_blood_pressure_trend/</code> : <code>GET</code> pour générer les tendances de la pression artérielle.</li>
+</ul>
+<h3 id="generer-les-tendances-du-cholesterol"><strong>Générer les tendances du cholestérol</strong></h3>
+<ul>
+<li><code>/generate_cholesterol_level_trend/</code> : <code>GET</code> pour générer les tendances du cholestérol.</li>
+</ul>
+<h3 id="generer-les-tendances-de-la-numeration-sanguine-complete"><strong>Générer les tendances de la numération sanguine complète</strong></h3>
+<ul>
+<li><code>/generate_complete_blood_count_trend/</code> : <code>GET</code> pour générer les tendances de la numération sanguine complète.</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
