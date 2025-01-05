@@ -48,6 +48,18 @@
 ### **Afficher le profil utilisateur**
 - `/profile/` : `GET` pour afficher les informations du profil de l'utilisateur.
 
+### **Afficher les informations d'un patient**
+- `/patient-info/<str:nss>/` : `GET` pour obtenir les informations d'un patient.
+
+### **Afficher les soins fournis à un patient**
+- `/patient/<str:nss>/care/` : `GET` pour obtenir les soins fournis à un patient.
+
+### **Afficher les détails d'une prescription**
+- `/patient/prescription/<int:prescription_id>/` : `GET` pour afficher les détails d'une prescription.
+
+### **Afficher toutes les prescriptions d'un patient**
+- `/patient/prescriptions/<str:nss>/` : `GET` pour obtenir toutes les prescriptions d'un patient.
+
 ## 4. Consultation Médicale
 
 ### **Créer une consultation**
@@ -65,7 +77,7 @@
 - `/create_biological_assessment/<int:ehr_id>/` : `POST` pour créer un bilan biologique.
 
 ### **Afficher un bilan biologique**
-- `/view_biological_assessment/<int:ehr_id>/` : `GET` pour afficher les résultats d'un bilan biologique.
+- `/view_biological_assessment/<int:ehr_id>/` : `GET` pour afficher le bilan biologique.
 
 ### **Remplir un rapport biologique**
 - `/biological_assessment/fill_report/<int:assessment_id>/` : `POST` pour remplir un rapport biologique.
@@ -77,7 +89,7 @@
 - `/create_radiology_assessment/<int:ehr_id>/` : `POST` pour créer un bilan radiologique.
 
 ### **Afficher un bilan radiologique**
-- `/display_radiology_assessment/<int:ehr_id>/` : `GET` pour afficher les résultats d'un bilan radiologique.
+- `/display_radiology_assessment/<int:ehr_id>/` : `GET` pour afficher un bilan radiologique.
 
 ### **Remplir un rapport radiologique**
 - `/fill-radiology-report/<int:assessment_id>/` : `POST` pour remplir un rapport radiologique.
@@ -88,10 +100,10 @@
 ## 6. Recherche et Affichage des Rapports
 
 ### **Afficher les rapports biologiques**
-- `/biology-reports/` : `GET` pour consulter tous les rapports biologiques.
+- `/biology-reports/` : `GET` pour consulter tous les rapports biologiques par NSS.
 
 ### **Afficher les rapports radiologiques**
-- `/radiology-reports/` : `GET` pour consulter tous les rapports radiologiques.
+- `/radiology-reports/` : `GET` pour consulter tous les rapports radiologiques par NSS.
 
 ### **Rechercher un patient par NSS**
 - `/search-patient/` : `GET` pour rechercher un patient par son numéro de sécurité sociale.
