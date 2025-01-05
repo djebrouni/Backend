@@ -69,6 +69,23 @@ class SignUpView(APIView):
             return Response({'message': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
 
         
+        # # Check if patient with NSS already exists
+        # existing_patient = Patient.objects.filter(NSS=nss).first()
+
+        # if existing_patient:
+        #     # Check if patient has already registered
+        #     if existing_patient.email and existing_patient.password:
+        #         return Response({'message': 'An account with this NSS and email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+        #     # Update patient record if email or password is missing
+        #     if not existing_patient.email and not existing_patient.password:
+        #         existing_patient.email = email
+        #         existing_patient.password = password
+        #         existing_patient.save()
+        #         return Response({'message': 'Patient account updated successfully.'}, status=status.HTTP_200_OK)
+
+        # # If no patient exists, ensure EHR is ready
+        # return Response({'message': 'Your EHR is not created yet.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Check if patient with email already exists
         existing_user = Model.objects.filter(email=email).first()
         if existing_user:
@@ -118,7 +135,7 @@ class SignUpView(APIView):
 class SignInView(View):
     def post(self, request):
         data = json.loads(request.body)
-
+        
         role = data.get('role')
         Model = getModel(role.capitalize())
         if not Model:

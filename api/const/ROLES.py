@@ -1,11 +1,13 @@
 from enum import Enum
 
 class ROLES(Enum):
-    Patient = "Patient"
+    Patient = "patient"
 
-    Doctor = "Doctor"
-    LabTechnician = "LabTechnician"
-    Radiologist = "Radiologist"
-    Nurse = "Nurse"
+    Doctor = "doctor"
+    LabTechnician = "labTechnician"
+    Radiologist = "radiologist"
+    Nurse = "nurse"
 
     administratifStaff = "administratifStaff"
+    
+    admin = 'admin'
