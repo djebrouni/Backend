@@ -5,7 +5,7 @@ def verify_role(*allowed_roles):
     
     def decorator(view_func):
         @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(self, request, *args, **kwargs):
             # Get role from request
             user_role = request.role
             
@@ -14,7 +14,7 @@ def verify_role(*allowed_roles):
                 return JsonResponse({'error': 'Forbidden: Insufficient permissions'}, status=403)
             
             # Proceed to the view function if the role is allowed
-            return view_func(request, *args, **kwargs)
+            return view_func(self, request, *args, **kwargs)
         
         return wrapper
     

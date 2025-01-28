@@ -14,13 +14,6 @@ from django.conf import settings
 import jwt
 import json
 
-def getModel(role):
-    """
-    Fonction fictive pour valider le rôle et retourner un modèle ou une exception.
-    """
-    if role == "nurse":
-        return Nurse
-    raise ValueError("Invalid role")
 @method_decorator(csrf_exempt, name="dispatch")  # Désactive la vérification CSRF
 class CareProvidedCreateView(View):
     def post(self, request):

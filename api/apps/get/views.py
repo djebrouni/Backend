@@ -2,60 +2,38 @@ from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from api.const.ROLES import ROLES
 from api.models import Doctor, Hospital
 from django.conf import settings
 import jwt
+from api.middlewares.authentication import verify_user
+from api.middlewares.authorization import verify_role
 
-@method_decorator(csrf_exempt, name='dispatch')
 class HospitalRecordsView(View):
+    verify_user
+    verify_role(ROLES.Doctor, ROLES.AdministratifStaff)
     def get(self, request):
         try:
-            # Validate Authorization token
-            token = request.headers.get("Authorization")
-            if not token:
-                return JsonResponse({"error": "Authorization token is missing"}, status=401)
-
-            token = token.split(" ")[1]  # Assuming Bearer Token
-            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-
             # Retrieve all hospital records
             records = Hospital.objects.all().values()
-            return JsonResponse({"records": list(records)}, safe=False, status=200)
+            return JsonResponse({"hospitals": list(records)}, safe=False, status=200)
 
-        except jwt.ExpiredSignatureError:
-            return JsonResponse({"error": "Token has expired"}, status=401)
-        except jwt.InvalidTokenError:
-            return JsonResponse({"error": "Invalid token"}, status=401)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class DoctorRecordsView(View):
+    verify_user
+    verify_role(ROLES.Doctor, ROLES.AdministratifStaff)
     def get(self, request):
         try:
-            # Validate Authorization token
-            token = request.headers.get("Authorization")
-            if not token:
-                return JsonResponse({"error": "Authorization token is missing"}, status=401)
-
-            token = token.split(" ")[1]  # Assuming Bearer Token
-            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-
             # Retrieve all doctor records
             doctors = Doctor.objects.all().values()
             return JsonResponse({"doctors": list(doctors)}, safe=False, status=200)
 
-        except jwt.ExpiredSignatureError:
-            return JsonResponse({"error": "Token has expired"}, status=401)
-        except jwt.InvalidTokenError:
-            return JsonResponse({"error": "Invalid token"}, status=401)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
         
-
-
-
 
 
 from django.http import JsonResponse

@@ -4,7 +4,6 @@ from api.const.ROLES import ROLES
 def getModel(role):
     # Normalize role input
     try:
-        print(role)
         role = role.strip().lower()  # Trim spaces and lowercase
     except: return None
     

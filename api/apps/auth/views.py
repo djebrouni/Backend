@@ -30,7 +30,6 @@ from django.conf import settings
 class SignUpView(APIView):
     def post(self, request):
         # get model
-        print('HH')
         role = request.data.get('role')
         Model = getModel(role.capitalize())
         if not Model:
@@ -138,6 +137,7 @@ class SignInView(View):
         
         role = data.get('role')
         Model = getModel(role.capitalize())
+        
         if not Model:
             return JsonResponse({'message': 'Role does not exist'}, status=400)        
         

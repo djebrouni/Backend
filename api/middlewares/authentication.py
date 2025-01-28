@@ -6,7 +6,7 @@ from api.helper.getModels import getModel
 
 def verify_user(view_func):
     @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
+    def wrapper(self, request, *args, **kwargs):
         # Get the Authorization header
         auth_header = request.headers.get('Authorization')
         if not auth_header:
@@ -27,8 +27,8 @@ def verify_user(view_func):
             return JsonResponse({'error': 'Invalid Token'}, status=401)
 
         # get data from token
-        user_id = decoded_data.get('userId')
-        user_role = decoded_data.get('userRole')
+        user_id = decoded_data.get('user_id')
+        user_role = decoded_data.get('role')
         
         # verify if user exist
         Model = getModel(user_role)
@@ -43,10 +43,10 @@ def verify_user(view_func):
         # Attach data to the request
         request.user = user
         request.Model = Model
-        request.role = decoded_data.get('userRole')
+        request.role = user_role
         
         # Proceed to the view
-        return view_func(request, *args, **kwargs)
+        return view_func(self, request, *args, **kwargs)
     
     return wrapper
 

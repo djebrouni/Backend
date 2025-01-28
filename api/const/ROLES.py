@@ -8,6 +8,6 @@ class ROLES(Enum):
     Radiologist = "radiologist"
     Nurse = "nurse"
 
-    administratifStaff = "administratifStaff"
+    AdministratifStaff = "administratifStaff"
     
-    admin = 'admin'
+    Admin = 'admin'

@@ -1,0 +1,10 @@
+
+site_name: Sihati
+site_description: La documentation de Sihati un application desktop de gestion de DPI
+nav:
+  - Home: index.md
+  - Installation: installations.md
+  - URLs: urls.md
+  - Models: models.md
+  - Support: support.md
+  
